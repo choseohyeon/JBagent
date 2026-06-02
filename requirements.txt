@@ -1,0 +1,14 @@
+anthropic
+streamlit
+pandas
+numpy
+scipy
+lifelines
+statsmodels
+scikit-learn
+cvxpy
+ruptures
+plotly
+python-dotenv
+gTTS
+openai
