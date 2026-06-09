@@ -43,8 +43,10 @@ _CONTEXT_GUIDE = """\
 - 이전 대화에서 파악한 나이·자산·지출·연금액·건강 정보를 계속 기억하고 재사용하세요.
 - 사용자가 일부 조건만 바꾸면 ("지출을 줄이면", "담배를 끊으면", "주식 비율을 낮추면")
   그 값만 교체하고 나머지는 직전 도구 호출 값 그대로 유지해 재계산하세요.
-- 파라미터가 불확실할 때는 추측하지 말고 짧게 되물어보세요.
-  예: "혹시 현재 순자산이 어느 정도 되시나요?" """
+- 파라미터가 없어도 절대 되묻지 말고 아래 기본값으로 즉시 계산하세요:
+  life_expectancy=85, sex='M', smoking=False, chronic_disease=False, bmi=22.0
+- 사용자가 "계산해달라"고 했으면 반드시 도구를 호출해 수치를 먼저 내놓으세요.
+- 기본값을 사용했다면 계산 후 짧게 "(기대수명 85세 기준)" 처럼 한 줄 언급만 하세요."""
 
 _LANGUAGE_GUIDE = """\
 ## 언어 변환 규칙
@@ -81,6 +83,12 @@ _RESPONSE_FORMAT = """\
 
 
 # ── 공개 API ─────────────────────────────────────────────────────────────────
+
+def get_system_prompt(age: int = 65) -> str:
+    """나이 값으로 세그먼트 자동 결정 후 프롬프트 반환 (ui/app.py에서 호출)"""
+    segment = 3 if age >= 75 else 2 if age >= 65 else 1
+    return build_system_prompt(segment)
+
 
 def build_system_prompt(age_segment: Optional[int] = None) -> str:
     """

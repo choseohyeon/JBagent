@@ -313,16 +313,16 @@ def _show_main():
 
 
 def _inject_profile(question: str) -> str:
-    if st.session_state.conv_history:
-        return question
     p = st.session_state.profile
-    return (
-        f"[내 정보: 나이={p.get('age')}세, "
+    profile_str = (
+        f"[사용자 정보: 나이={p.get('age')}세, "
         f"총자산={p.get('assets',0)//10000:,}만원, "
         f"월지출={p.get('monthly_expense',0)//10000}만원, "
         f"월연금={p.get('pension',0)//10000}만원"
-        f"(수령시작{p.get('pension_start_age')}세)]\n\n{question}"
+        f"(수령시작{p.get('pension_start_age')}세). "
+        f"추가 정보를 묻지 말고 이 정보로 바로 계산해주세요.]"
     )
+    return f"{profile_str}\n\n{question}"
 
 # ── 메인 ─────────────────────────────────────────────────────────────────────
 

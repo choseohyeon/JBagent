@@ -48,7 +48,8 @@ def run_agent(user_message: str, conversation_history: list, age: int = 65) -> t
         if not message.tool_calls:
             content = message.content or ""
             xml_calls = _parse_xml_tool_calls(content)
-            if xml_calls:
+            valid_xml = [c for c in xml_calls if "name" in c] if xml_calls else []
+            if valid_xml:
                 clean_content = re.sub(r'<tool_call>.*?</tool_call>', '', content, flags=re.DOTALL).strip()
                 history.append({
                     "role": "assistant",
@@ -56,10 +57,10 @@ def run_agent(user_message: str, conversation_history: list, age: int = 65) -> t
                     "tool_calls": [
                         {"id": f"call_{uuid.uuid4().hex[:8]}", "type": "function",
                          "function": {"name": c["name"], "arguments": json.dumps(c.get("arguments", c.get("parameters", {})))}}
-                        for c in xml_calls
+                        for c in valid_xml
                     ],
                 })
-                for c in xml_calls:
+                for c in valid_xml:
                     args = c.get("arguments", c.get("parameters", {}))
                     result = handle_tool_call(c["name"], args if isinstance(args, dict) else json.loads(args))
                     history.append({
@@ -135,22 +136,36 @@ def _has_chinese(text: str) -> bool:
 
 
 def _force_korean(text: str) -> str:
-    """중국어 문자 포함 시 한국어로 재번역 (최대 3회)"""
+    """중국어 문자 포함 시 직접 제거 후 메타 번역 주석 정리"""
     if not _has_chinese(text):
-        return text
-    for _ in range(3):
-        response = client.chat.completions.create(
-            model=MODEL,
-            messages=[
-                {"role": "system", "content": "You are a Korean translator. Output ONLY Korean. 반드시 한국어로만 번역하세요. 중국어 절대 금지."},
-                {"role": "user", "content": text},
-            ],
-        )
-        result = response.choices[0].message.content or text
-        if not _has_chinese(result):
-            return result
-        text = result
-    return re.sub(r'[一-鿿㐀-䶿]', '', text).strip()
+        return _clean_translation_artifacts(text)
+    # LLM 재번역 없이 중국어 문자만 직접 제거
+    text = re.sub(r'[一-鿿㐀-䶿]+', '', text)
+    return _clean_translation_artifacts(text).strip()
+
+
+def _clean_translation_artifacts(text: str) -> str:
+    """LLM이 번역 메타 주석을 출력할 때 제거"""
+    patterns = [
+        r'현재 입력하신 내용이 요구사항에 맞지 않습니다[^\n]*\n?',
+        r'한국어로 번역해주시기 바랍니다[^\n]*\n?',
+        r'라는 문장은 한국어로 다음과 같이 번역할 수 있습니다[:：]\s*',
+        r'다음과 같이 번역(됩니다|할 수 있습니다)[:：]\s*',
+        r'번역[:：]\s*',
+    ]
+    for p in patterns:
+        text = re.sub(p, '', text, flags=re.IGNORECASE)
+    # 중복된 단락 제거 (같은 문장이 두 번 나오면 하나만 유지)
+    lines = text.split('\n')
+    seen, result = set(), []
+    for line in lines:
+        stripped = line.strip()
+        if stripped and stripped not in seen:
+            seen.add(stripped)
+            result.append(line)
+        elif not stripped:
+            result.append(line)
+    return '\n'.join(result).strip()
 
 
 def _to_openai_tools(tools: list) -> list:

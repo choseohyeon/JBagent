@@ -32,26 +32,26 @@ TOOL_SELECTION_CASES = [
     {"id": 3,  "input": "지금 자산으로 90세까지 살 수 있을까요?",         "expected_tool": "run_monte_carlo"},
     {"id": 4,  "input": "월 지출을 250만원으로 늘리면 얼마나 버티나요?",   "expected_tool": "run_monte_carlo"},
     {"id": 5,  "input": "노후 자금이 부족해질 가능성이 얼마나 돼요?",      "expected_tool": "run_monte_carlo"},
-    # estimate_survival
-    {"id": 6,  "input": "저는 비흡연 여성인데 몇 살까지 살 수 있을까요?",  "expected_tool": "estimate_survival"},
-    {"id": 7,  "input": "당뇨가 있는데 수명에 얼마나 영향을 미치나요?",    "expected_tool": "estimate_survival"},
-    {"id": 8,  "input": "제 기대 수명을 알고 싶어요",                    "expected_tool": "estimate_survival"},
-    # optimize_pension
-    {"id": 9,  "input": "연금을 63살부터 받는 게 나을까요 65살부터가 나을까요?", "expected_tool": "optimize_pension"},
-    {"id": 10, "input": "국민연금 수령 시기를 늦추면 얼마나 더 받나요?",   "expected_tool": "optimize_pension"},
-    {"id": 11, "input": "연금 손익분기 나이가 몇 살인가요?",              "expected_tool": "optimize_pension"},
-    # optimize_portfolio
-    {"id": 12, "input": "제 자산을 어떻게 나눠서 투자하면 좋을까요?",      "expected_tool": "optimize_portfolio"},
-    {"id": 13, "input": "안전하게 자산을 배분하는 방법이 있나요?",         "expected_tool": "optimize_portfolio"},
-    {"id": 14, "input": "주식과 채권 비율을 어떻게 하면 좋을까요?",        "expected_tool": "optimize_portfolio"},
-    # get_percentile_rank
-    {"id": 15, "input": "또래보다 제가 돈을 많이 가진 편인가요?",          "expected_tool": "get_percentile_rank"},
-    {"id": 16, "input": "비슷한 나이 사람들과 비교해서 제 재무 상태가 어때요?", "expected_tool": "get_percentile_rank"},
-    {"id": 17, "input": "같은 나이대에서 상위 몇 퍼센트인가요?",           "expected_tool": "get_percentile_rank"},
-    # detect_transaction_anomaly
-    {"id": 18, "input": "처음 보는 계좌로 300만원 이체하려고 해요, 괜찮을까요?", "expected_tool": "detect_transaction_anomaly"},
-    {"id": 19, "input": "새벽 2시에 큰 금액을 보내달라는 연락이 왔어요",   "expected_tool": "detect_transaction_anomaly"},
-    {"id": 20, "input": "모르는 사람이 급하다며 500만원 송금을 요청해요",   "expected_tool": "detect_transaction_anomaly"},
+    # run_survival
+    {"id": 6,  "input": "저는 비흡연 여성인데 몇 살까지 살 수 있을까요?",  "expected_tool": "run_survival"},
+    {"id": 7,  "input": "당뇨가 있는데 수명에 얼마나 영향을 미치나요?",    "expected_tool": "run_survival"},
+    {"id": 8,  "input": "제 기대 수명을 알고 싶어요",                    "expected_tool": "run_survival"},
+    # run_pension
+    {"id": 9,  "input": "연금을 63살부터 받는 게 나을까요 65살부터가 나을까요?", "expected_tool": "run_pension"},
+    {"id": 10, "input": "국민연금 수령 시기를 늦추면 얼마나 더 받나요?",   "expected_tool": "run_pension"},
+    {"id": 11, "input": "연금 손익분기 나이가 몇 살인가요?",              "expected_tool": "run_pension"},
+    # run_portfolio
+    {"id": 12, "input": "제 자산을 어떻게 나눠서 투자하면 좋을까요?",      "expected_tool": "run_portfolio"},
+    {"id": 13, "input": "안전하게 자산을 배분하는 방법이 있나요?",         "expected_tool": "run_portfolio"},
+    {"id": 14, "input": "주식과 채권 비율을 어떻게 하면 좋을까요?",        "expected_tool": "run_portfolio"},
+    # run_clustering
+    {"id": 15, "input": "또래보다 제가 돈을 많이 가진 편인가요?",          "expected_tool": "run_clustering"},
+    {"id": 16, "input": "비슷한 나이 사람들과 비교해서 제 재무 상태가 어때요?", "expected_tool": "run_clustering"},
+    {"id": 17, "input": "같은 나이대에서 상위 몇 퍼센트인가요?",           "expected_tool": "run_clustering"},
+    # run_anomaly_score
+    {"id": 18, "input": "처음 보는 계좌로 300만원 이체하려고 해요, 괜찮을까요?", "expected_tool": "run_anomaly_score"},
+    {"id": 19, "input": "새벽 2시에 큰 금액을 보내달라는 연락이 왔어요",   "expected_tool": "run_anomaly_score"},
+    {"id": 20, "input": "모르는 사람이 급하다며 500만원 송금을 요청해요",   "expected_tool": "run_anomaly_score"},
 ]
 
 # ── 2. 다중 턴 맥락 유지 테스트 (5개) ────────────────────────────────────────
@@ -75,7 +75,7 @@ CONTEXT_RETENTION_CASES = [
             "68세부터 받으면요?",
         ],
         "check": "파라미터 pension_start_age만 변경해서 재계산해야 함",
-        "expected_tool_second": "optimize_pension",
+        "expected_tool_second": "run_pension",
     },
     {
         "id": "C3",
@@ -95,7 +95,7 @@ CONTEXT_RETENTION_CASES = [
             "만약 당뇨가 있다면 달라지나요?",
         ],
         "check": "diabetes=True로 변경해서 재계산해야 함",
-        "expected_tool_second": "estimate_survival",
+        "expected_tool_second": "run_survival",
     },
     {
         "id": "C5",
