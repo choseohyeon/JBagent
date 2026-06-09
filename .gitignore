@@ -1,27 +1,8 @@
-# 환경 변수 (API 키)
 .env
-.env.local
-
-# Python
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-.Python
-*.egg-info/
-dist/
-build/
 .venv/
 venv/
-
-# 데이터 (용량 큰 원본 데이터)
-data/raw/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-*.swp
+필요한 파일/
+*.xls
+*.xlsx
