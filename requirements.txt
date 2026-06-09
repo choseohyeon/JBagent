@@ -1,0 +1,16 @@
+pandas
+numpy
+scipy
+statsmodels
+lifelines
+cvxpy
+scikit-learn
+ruptures
+anthropic
+streamlit
+plotly
+openpyxl
+xlrd
+python-dotenv
+requests
+matplotlib
