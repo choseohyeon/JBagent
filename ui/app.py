@@ -50,6 +50,8 @@ def _init():
         "conv_history": [],
         "result_text": None,
         "sim_result": None,
+        "pension_result": None,
+        "active_button": None,
         "voice_mode": False,
         "pending_question": None,
     }
@@ -179,6 +181,67 @@ def _extract_sim(history: list):
             pass
     return None
 
+
+def _extract_pension(history: list):
+    """대화 기록에서 연금 최적화 결과 추출 (막대 차트용)"""
+    for msg in reversed(history):
+        if not isinstance(msg, dict) or msg.get("role") != "tool":
+            continue
+        try:
+            data = json.loads(msg["content"])
+            if "optimal_claim_age" in data:
+                return data
+        except Exception:
+            pass
+    return None
+
+
+def _pension_chart(pension_data: dict, base_monthly: float) -> go.Figure:
+    """연금 수령 시기별 월 수령액 비교 막대 차트"""
+    # 국민연금 조정 규칙: 조기 -0.5%/월, 연기 +0.7%/월 (기준 65세)
+    ages    = [62, 63, 64, 65, 66, 67, 68, 69, 70]
+    amounts = []
+    for a in ages:
+        diff_months = (a - 65) * 12
+        if diff_months < 0:
+            rate = 1 + 0.005 * diff_months      # 조기 감액
+        else:
+            rate = 1 + 0.007 * diff_months      # 연기 가산
+        amounts.append(round(base_monthly * rate, 1))
+
+    optimal = pension_data.get("optimal_claim_age", 65)
+    colors  = ["#E53935" if a == optimal else "#1B4F8A" for a in ages]
+    labels  = [f"{a}세" for a in ages]
+
+    fig = go.Figure(go.Bar(
+        x=labels,
+        y=amounts,
+        marker_color=colors,
+        text=[f"{v:.0f}만원" for v in amounts],
+        textposition="outside",
+    ))
+
+    breakeven = pension_data.get("breakeven_age", None)
+    title_txt = (
+        f"<b>연금 수령 시기별 월 수령액</b>"
+        f"  ·  최적: <span style='color:#E53935'>{optimal}세</span>"
+    )
+    if breakeven:
+        title_txt += f"  ·  손익분기: {breakeven:.0f}세"
+
+    fig.update_layout(
+        title=dict(text=title_txt, font=dict(size=16)),
+        xaxis_title="수령 시작 나이",
+        yaxis_title="월 수령액 (만원)",
+        plot_bgcolor="white",
+        paper_bgcolor="white",
+        height=380,
+        margin=dict(l=20, r=20, t=60, b=40),
+        showlegend=False,
+    )
+    fig.update_yaxes(range=[0, max(amounts) * 1.2])
+    return fig
+
 # ── 온보딩 ────────────────────────────────────────────────────────────────────
 
 def _show_onboarding():
@@ -255,6 +318,8 @@ def _show_main():
                     st.session_state.pending_question = _inject_profile(prompt)
                     st.session_state.result_text = None
                     st.session_state.sim_result = None
+                    st.session_state.pension_result = None
+                    st.session_state.active_button = i
                     st.rerun()
                 st.markdown('</div>', unsafe_allow_html=True)
 
@@ -273,12 +338,27 @@ def _show_main():
         sim = _extract_sim(updated)
         if sim:
             st.session_state.sim_result = sim
+        pension = _extract_pension(updated)
+        if pension:
+            st.session_state.pension_result = pension
         st.rerun()
 
     if st.session_state.result_text:
-        # 팬 차트
-        if st.session_state.sim_result:
+        # 팬 차트 (버튼1·4 — Monte Carlo)
+        if st.session_state.sim_result and st.session_state.active_button != 1:
             fig = _fan_chart(p, st.session_state.sim_result)
+            st.plotly_chart(fig, use_container_width=True)
+
+        # 연금 막대 차트 (버튼2 — 연금 시기)
+        if st.session_state.pension_result and st.session_state.active_button == 1:
+            pr = st.session_state.pension_result
+            adj = pr.get("adjustment_rate", 1.0)
+            monthly_opt = pr.get("monthly_at_optimal", 0)
+            # 원 단위로 반환된 경우 만원으로 변환 (1만원 이상이면 원 단위로 판단)
+            if monthly_opt > 10000:
+                monthly_opt = monthly_opt / 10000
+            base_monthly = round(monthly_opt / (1 + adj), 1)
+            fig = _pension_chart(pr, base_monthly)
             st.plotly_chart(fig, use_container_width=True)
 
         # 결과 카드
@@ -350,6 +430,7 @@ def main():
             st.session_state.update({
                 "step": 0, "profile": {}, "conv_history": [],
                 "result_text": None, "sim_result": None,
+                "pension_result": None, "active_button": None,
                 "pending_question": None,
             })
             st.rerun()
