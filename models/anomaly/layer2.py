@@ -10,7 +10,7 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
-DATA_DIR = Path(__file__).parent.parent.parent / "필요한 파일"
+DATA_DIR = Path(__file__).parent.parent.parent / "data" / "raw"
 
 # 가계동향조사 지출 카테고리 매핑
 CATEGORIES = ['식료품', '주거광열', '의료보건', '교통', '통신', '교육', '기타']

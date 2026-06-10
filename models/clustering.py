@@ -6,7 +6,7 @@ from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import silhouette_score
 
-DATA_DIR = Path(__file__).parent.parent / "필요한 파일"
+DATA_DIR = Path(__file__).parent.parent / "data" / "raw"
 
 # 군집화에 사용할 컬럼 (가구마스터 EUC-KR 컬럼명)
 FEATURE_COLS = {

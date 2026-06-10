@@ -7,7 +7,7 @@ from typing import NamedTuple
 
 from models.survival import SurvivalModel, PersonalProfile
 
-DATA_DIR = Path(__file__).parent.parent / "필요한 파일"
+DATA_DIR = Path(__file__).parent.parent / "data" / "raw"
 
 
 # ── 데이터 클래스 ────────────────────────────────────────────────────────────
