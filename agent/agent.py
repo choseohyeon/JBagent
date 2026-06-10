@@ -47,8 +47,8 @@ def run_agent(user_message: str, conversation_history: list, age: int = 65) -> t
         if not message.tool_calls:
             content = message.content or ""
 
-            # XML fallback 파싱 (llama3.1 이 간혹 XML 포맷 출력)
-            xml_calls = _parse_xml_tool_calls(content)
+            # fallback 파싱: XML 태그 또는 bare JSON 형식 tool call 감지
+            xml_calls = _parse_xml_tool_calls(content) or _parse_bare_json_tool_calls(content)
             valid_xml = [c for c in xml_calls if "name" in c] if xml_calls else []
             if valid_xml:
                 clean_content = re.sub(r'<tool_call>.*?</tool_call>', '', content, flags=re.DOTALL).strip()
@@ -152,6 +152,48 @@ def _parse_xml_tool_calls(text: str) -> list[dict] | None:
             result.append(json.loads(m.strip()))
         except Exception:
             pass
+    return result if result else None
+
+
+def _parse_bare_json_tool_calls(text: str) -> list[dict] | None:
+    """태그 없이 bare JSON {"name": ..., "parameters": ...} 형식 파싱
+    llama3.1이 Python 불리언(True/False/None)을 그대로 출력하는 경우도 처리"""
+    def _normalize(s: str) -> str:
+        s = re.sub(r'\bTrue\b',  'true',  s)
+        s = re.sub(r'\bFalse\b', 'false', s)
+        s = re.sub(r'\bNone\b',  'null',  s)
+        return s
+
+    def _try_parse(s: str):
+        try:
+            return json.loads(s)
+        except Exception:
+            try:
+                return json.loads(_normalize(s))
+            except Exception:
+                return None
+
+    # 전체가 JSON 한 덩어리인 경우
+    obj = _try_parse(text.strip())
+    if isinstance(obj, dict) and "name" in obj:
+        return [obj]
+
+    # 텍스트 중간에 섞여 있는 경우 — 중첩 중괄호까지 포함해서 찾기
+    result = []
+    depth, start = 0, None
+    for i, ch in enumerate(text):
+        if ch == '{':
+            if depth == 0:
+                start = i
+            depth += 1
+        elif ch == '}':
+            depth -= 1
+            if depth == 0 and start is not None:
+                chunk = text[start:i+1]
+                obj = _try_parse(chunk)
+                if isinstance(obj, dict) and "name" in obj and ("parameters" in obj or "arguments" in obj):
+                    result.append(obj)
+                start = None
     return result if result else None
 
 
