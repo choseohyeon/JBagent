@@ -1,8 +1,8 @@
 """
-Agent 메인 루프 - Ollama 로컬 LLM + Tool Use (완전 무료)
-- OpenAI-compatible API로 Ollama 호출 (LLM)
+Agent 메인 루프 - 두 모델 역할 분담 (완전 무료 로컬)
+- llama3.1:8b  : tool calling 담당 (어떤 도구를 쓸지 결정 + 실행)
+- exaone3.5:7.8b: 한국어 응답 생성 담당 (자연스러운 한국어 설명)
 - Role A의 call_tool()로 실제 통계 모델 실행 (Python 함수, API 없음)
-- 다중 턴 대화 + Tool Use 루프
 """
 
 import json
@@ -12,32 +12,31 @@ from openai import OpenAI
 from agent.tools import TOOLS, call_tool
 from agent.prompts import get_system_prompt
 
-# Ollama OpenAI-compatible 엔드포인트 (로컬, 무료)
 client = OpenAI(
     base_url="http://localhost:11434/v1",
     api_key="ollama",
 )
 
-MODEL = "qwen2.5:7b"
+MODEL_TOOL  = "llama3.1:8b"     # tool calling 담당
+MODEL_REPLY = "exaone3.5:7.8b"  # 한국어 응답 생성 담당
 
 
 def run_agent(user_message: str, conversation_history: list, age: int = 65) -> tuple[str, list]:
     """
     사용자 메시지를 받아 Agent 응답 반환.
-    Tool Use가 필요하면 자동으로 통계 모듈 호출 후 해석.
-
-    Returns:
-        (응답 텍스트, 업데이트된 대화 기록)
+    1) llama3.1 이 tool 을 결정·호출
+    2) tool 결과가 있으면 exaone3.5 가 자연스러운 한국어로 설명
     """
     system_prompt = get_system_prompt(age)
     history = conversation_history.copy()
-    history.append({"role": "user", "content": user_message + "\n\n(반드시 한국어로만 답변해주세요.)"})
+    history.append({"role": "user", "content": user_message})
 
     openai_tools = _to_openai_tools(TOOLS)
+    tool_results: list[tuple[str, dict]] = []  # (tool_name, result)
 
     for _ in range(5):
         response = client.chat.completions.create(
-            model=MODEL,
+            model=MODEL_TOOL,
             messages=[{"role": "system", "content": system_prompt}] + history,
             tools=openai_tools,
             tool_choice="auto",
@@ -47,6 +46,8 @@ def run_agent(user_message: str, conversation_history: list, age: int = 65) -> t
 
         if not message.tool_calls:
             content = message.content or ""
+
+            # XML fallback 파싱 (llama3.1 이 간혹 XML 포맷 출력)
             xml_calls = _parse_xml_tool_calls(content)
             valid_xml = [c for c in xml_calls if "name" in c] if xml_calls else []
             if valid_xml:
@@ -63,6 +64,7 @@ def run_agent(user_message: str, conversation_history: list, age: int = 65) -> t
                 for c in valid_xml:
                     args = c.get("arguments", c.get("parameters", {}))
                     result = handle_tool_call(c["name"], args if isinstance(args, dict) else json.loads(args))
+                    tool_results.append((c["name"], result))
                     history.append({
                         "role": "tool",
                         "tool_call_id": f"call_{uuid.uuid4().hex[:8]}",
@@ -70,34 +72,64 @@ def run_agent(user_message: str, conversation_history: list, age: int = 65) -> t
                     })
                 continue
 
-            reply = _force_korean(_strip_tool_artifacts(content))
+            # tool 호출이 있었으면 exaone 으로 한국어 설명 생성
+            if tool_results:
+                reply = _korean_reply(user_message, tool_results, age)
+            else:
+                reply = content.strip()
+
             history.append({"role": "assistant", "content": reply})
             return reply, history
 
+        # tool_calls 처리
         history.append({
             "role": "assistant",
             "content": message.content,
             "tool_calls": [
-                {
-                    "id": tc.id,
-                    "type": "function",
-                    "function": {"name": tc.function.name, "arguments": tc.function.arguments},
-                }
+                {"id": tc.id, "type": "function",
+                 "function": {"name": tc.function.name, "arguments": tc.function.arguments}}
                 for tc in message.tool_calls
             ],
         })
-        for tool_call in message.tool_calls:
-            result = handle_tool_call(
-                tool_call.function.name,
-                json.loads(tool_call.function.arguments),
-            )
+        for tc in message.tool_calls:
+            result = handle_tool_call(tc.function.name, json.loads(tc.function.arguments))
+            tool_results.append((tc.function.name, result))
             history.append({
                 "role": "tool",
-                "tool_call_id": tool_call.id,
+                "tool_call_id": tc.id,
                 "content": json.dumps(result, ensure_ascii=False),
             })
 
-    return "계산을 완료했습니다. 결과를 확인해 주세요.", history
+    # 최대 루프 초과 — 결과가 있으면 exaone 으로 마무리
+    reply = _korean_reply(user_message, tool_results, age) if tool_results else "계산을 완료했습니다."
+    history.append({"role": "assistant", "content": reply})
+    return reply, history
+
+
+def _korean_reply(user_message: str, tool_results: list[tuple[str, dict]], age: int) -> str:
+    """exaone3.5 로 tool 결과를 자연스러운 한국어 설명으로 변환"""
+    system_prompt = get_system_prompt(age)
+
+    results_text = ""
+    for name, result in tool_results:
+        results_text += f"\n[{name} 계산 결과]\n{json.dumps(result, ensure_ascii=False, indent=2)}\n"
+
+    prompt = (
+        f"사용자 질문: {user_message}\n\n"
+        f"통계 모델이 계산한 결과:{results_text}\n"
+        "위 계산 결과를 바탕으로 사용자에게 자연스럽고 따뜻한 한국어로 설명해 주세요.\n"
+        "전문 용어는 쉬운 말로 바꾸고, 가장 중요한 수치를 첫 문장에 제시하세요.\n"
+        "전체 3~5문장으로 간결하게 작성하세요."
+    )
+
+    response = client.chat.completions.create(
+        model=MODEL_REPLY,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": prompt},
+        ],
+    )
+    return (response.choices[0].message.content or "").strip()
 
 
 def handle_tool_call(tool_name: str, tool_input: dict) -> dict:
@@ -109,7 +141,7 @@ def handle_tool_call(tool_name: str, tool_input: dict) -> dict:
 
 
 def _parse_xml_tool_calls(text: str) -> list[dict] | None:
-    """<tool_call>...</tool_call> 형식 파싱 (대소문자·공백 허용)"""
+    """<tool_call>...</tool_call> 형식 파싱"""
     matches = re.findall(r'<\s*tool_call\s*>(.*?)<\s*/\s*tool_call\s*>', text, re.DOTALL | re.IGNORECASE)
     if not matches:
         orphan = re.findall(r'(\{.*?\})\s*<\s*/\s*tool_call\s*>', text, re.DOTALL)
@@ -121,51 +153,6 @@ def _parse_xml_tool_calls(text: str) -> list[dict] | None:
         except Exception:
             pass
     return result if result else None
-
-
-def _strip_tool_artifacts(text: str) -> str:
-    """최종 reply에서 <tool_call> 잔재 제거"""
-    text = re.sub(r'<\s*tool_call\s*>.*?<\s*/\s*tool_call\s*>', '', text, flags=re.DOTALL | re.IGNORECASE)
-    text = re.sub(r'<\s*/?tool_call\s*>', '', text, flags=re.IGNORECASE)
-    text = re.sub(r'\{[^{}]*"name"\s*:\s*"[^"]+?".*?\}\s*<\s*/\s*tool_call\s*>', '', text, flags=re.DOTALL)
-    return text.strip()
-
-
-def _has_chinese(text: str) -> bool:
-    return any("一" <= ch <= "鿿" or "㐀" <= ch <= "䶿" for ch in text)
-
-
-def _force_korean(text: str) -> str:
-    """중국어 문자 포함 시 직접 제거 후 메타 번역 주석 정리"""
-    if not _has_chinese(text):
-        return _clean_translation_artifacts(text)
-    # LLM 재번역 없이 중국어 문자만 직접 제거
-    text = re.sub(r'[一-鿿㐀-䶿]+', '', text)
-    return _clean_translation_artifacts(text).strip()
-
-
-def _clean_translation_artifacts(text: str) -> str:
-    """LLM이 번역 메타 주석을 출력할 때 제거"""
-    patterns = [
-        r'현재 입력하신 내용이 요구사항에 맞지 않습니다[^\n]*\n?',
-        r'한국어로 번역해주시기 바랍니다[^\n]*\n?',
-        r'라는 문장은 한국어로 다음과 같이 번역할 수 있습니다[:：]\s*',
-        r'다음과 같이 번역(됩니다|할 수 있습니다)[:：]\s*',
-        r'번역[:：]\s*',
-    ]
-    for p in patterns:
-        text = re.sub(p, '', text, flags=re.IGNORECASE)
-    # 중복된 단락 제거 (같은 문장이 두 번 나오면 하나만 유지)
-    lines = text.split('\n')
-    seen, result = set(), []
-    for line in lines:
-        stripped = line.strip()
-        if stripped and stripped not in seen:
-            seen.add(stripped)
-            result.append(line)
-        elif not stripped:
-            result.append(line)
-    return '\n'.join(result).strip()
 
 
 def _to_openai_tools(tools: list) -> list:
