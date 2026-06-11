@@ -55,6 +55,7 @@ def _init():
         "voice_mode": False,
         "pending_question": None,
         "ui_mode": None,              # None | "버튼 모드" | "채팅 모드"
+        "selected_feature": None,     # 선택한 기능 인덱스 (0~3)
         "chat_messages": [],          # 채팅 모드용 표시 메시지
     }
     for k, v in defaults.items():
@@ -286,6 +287,37 @@ def _show_mode_select():
             st.rerun()
 
 
+# ── 기능 선택 ────────────────────────────────────────────────────────────────
+
+def _show_feature_select():
+    st.markdown("## 어떤 것이 궁금하세요?")
+    st.markdown("")
+
+    col1, col2 = st.columns(2)
+    grid = [col1, col2, col1, col2]
+
+    features = [
+        ("💰", "내 자산\n얼마나 버티나요?",   "#1B4F8A", "#EBF2FF"),
+        ("📅", "연금 언제 받는 게\n좋을까요?", "#1B4F8A", "#EBF2FF"),
+        ("👥", "또래랑\n비교해주세요",          "#2E7D32", "#E8F5E9"),
+        ("📉", "지출 줄이면\n어떻게 되나요?",   "#2E7D32", "#E8F5E9"),
+    ]
+
+    for i, (icon, label, fc, bg) in enumerate(features):
+        with grid[i]:
+            st.markdown(f"""
+            <div style='background:{bg}; border:2px solid {fc}; border-radius:16px;
+                        padding:28px 16px; text-align:center; margin-bottom:8px;'>
+                <div style='font-size:40px;'>{icon}</div>
+                <div style='font-size:18px; font-weight:bold; color:{fc};
+                            margin-top:10px; white-space:pre-line;'>{label}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("선택", key=f"feat_{i}", use_container_width=True):
+                st.session_state.selected_feature = i
+                st.rerun()
+
+
 # ── 온보딩 ────────────────────────────────────────────────────────────────────
 
 def _show_onboarding():
@@ -337,6 +369,13 @@ def _show_main():
     assets  = p.get("assets", 0) // 10000
     expense = p.get("monthly_expense", 0) // 10000
     pension = p.get("pension", 0) // 10000
+
+    # 기능 선택 후 첫 진입 시 자동으로 해당 기능 실행
+    if st.session_state.selected_feature is not None and not st.session_state.pending_question and not st.session_state.result_text:
+        i = st.session_state.selected_feature
+        prompt = MENU[i][2]
+        st.session_state.pending_question = _inject_profile(prompt)
+        st.session_state.active_button = i
 
     # 프로필 요약 카드
     st.markdown(f"""
@@ -544,7 +583,7 @@ def main():
                 "result_text": None, "sim_result": None,
                 "pension_result": None, "active_button": None,
                 "pending_question": None, "chat_messages": [],
-                "ui_mode": None,
+                "ui_mode": None, "selected_feature": None,
             })
             st.rerun()
 
@@ -559,6 +598,8 @@ def main():
 
     if st.session_state.ui_mode is None:
         _show_mode_select()
+    elif st.session_state.ui_mode == "버튼 모드" and st.session_state.selected_feature is None:
+        _show_feature_select()
     elif st.session_state.step < len(ONBOARDING):
         _show_onboarding()
     elif st.session_state.ui_mode == "채팅 모드":
