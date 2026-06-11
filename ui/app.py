@@ -54,6 +54,8 @@ def _init():
         "active_button": None,
         "voice_mode": False,
         "pending_question": None,
+        "ui_mode": "버튼 모드",       # "버튼 모드" | "채팅 모드"
+        "chat_messages": [],          # 채팅 모드용 표시 메시지
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -392,6 +394,61 @@ def _show_main():
                 st.rerun()
 
 
+def _show_chat():
+    """채팅 모드 화면"""
+    p   = st.session_state.profile
+    age = p.get("age", 65)
+
+    # 대화 기록 표시
+    for msg in st.session_state.chat_messages:
+        with st.chat_message(msg["role"], avatar="🧓" if msg["role"] == "user" else "🤖"):
+            if msg.get("chart") == "fan" and msg.get("sim"):
+                st.plotly_chart(_fan_chart(p, msg["sim"]), use_container_width=True)
+            elif msg.get("chart") == "pension" and msg.get("pension"):
+                pr  = msg["pension"]
+                adj = pr.get("adjustment_rate", 1.0)
+                opt = pr.get("monthly_at_optimal", 0)
+                if opt > 10000:
+                    opt /= 10000
+                st.plotly_chart(_pension_chart(pr, round(opt / (1 + adj), 1)), use_container_width=True)
+            st.markdown(msg["content"])
+
+    # 입력창
+    user_input = st.chat_input("궁금한 것을 자유롭게 물어보세요")
+    if user_input:
+        full_q = _inject_profile(user_input)
+        st.session_state.chat_messages.append({"role": "user", "content": user_input})
+
+        with st.chat_message("user", avatar="🧓"):
+            st.markdown(user_input)
+
+        with st.chat_message("assistant", avatar="🤖"):
+            with st.spinner("계산 중..."):
+                reply, updated = run_agent(full_q, st.session_state.conv_history, age=age)
+            st.session_state.conv_history = updated
+
+            sim     = _extract_sim(updated)
+            pension = _extract_pension(updated)
+
+            ai_msg: dict = {"role": "assistant", "content": reply}
+            if sim:
+                ai_msg["chart"] = "fan"
+                ai_msg["sim"]   = sim
+                st.plotly_chart(_fan_chart(p, sim), use_container_width=True)
+            elif pension:
+                pr  = pension
+                adj = pr.get("adjustment_rate", 1.0)
+                opt = pr.get("monthly_at_optimal", 0)
+                if opt > 10000:
+                    opt /= 10000
+                ai_msg["chart"]   = "pension"
+                ai_msg["pension"] = pension
+                st.plotly_chart(_pension_chart(pr, round(opt / (1 + adj), 1)), use_container_width=True)
+
+            st.markdown(reply)
+            st.session_state.chat_messages.append(ai_msg)
+
+
 def _inject_profile(question: str) -> str:
     p = st.session_state.profile
     profile_str = (
@@ -415,6 +472,19 @@ def main():
         st.markdown("## LifeLong WM")
         st.divider()
 
+        # UI 모드 선택
+        ui_mode = st.radio(
+            "화면 방식",
+            ["버튼 모드", "채팅 모드"],
+            index=0 if st.session_state.ui_mode == "버튼 모드" else 1,
+            help="버튼 모드: 어르신 전용 간편 화면 / 채팅 모드: 자유롭게 대화",
+        )
+        if ui_mode != st.session_state.ui_mode:
+            st.session_state.ui_mode = ui_mode
+            st.rerun()
+
+        st.divider()
+
         voice = st.toggle("🎤 음성 모드", value=st.session_state.voice_mode)
         if voice != st.session_state.voice_mode:
             st.session_state.voice_mode = voice
@@ -431,7 +501,7 @@ def main():
                 "step": 0, "profile": {}, "conv_history": [],
                 "result_text": None, "sim_result": None,
                 "pension_result": None, "active_button": None,
-                "pending_question": None,
+                "pending_question": None, "chat_messages": [],
             })
             st.rerun()
 
@@ -446,6 +516,8 @@ def main():
 
     if st.session_state.step < len(ONBOARDING):
         _show_onboarding()
+    elif st.session_state.ui_mode == "채팅 모드":
+        _show_chat()
     else:
         _show_main()
 
