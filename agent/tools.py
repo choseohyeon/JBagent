@@ -50,10 +50,12 @@ def run_survival(sex: str, current_age: int,
 def run_monte_carlo(sex: str, current_age: int,
                     initial_assets: float, monthly_expense: float,
                     pension_monthly: float, pension_start_age: int,
+                    monthly_income: float = 0,
+                    income_until_age: int = 60,
                     stock_ratio: float = 0.4,
                     smoking: bool = False,
                     chronic_disease: bool = False,
-                    n_simulations: int = 5_000) -> dict:
+                    n_simulations: int = 2_000) -> dict:
     """생애 현금흐름 Monte Carlo 시뮬레이션"""
     profile = PersonalProfile(sex, current_age, smoking, chronic_disease)
     si = SimulationInput(
@@ -62,6 +64,8 @@ def run_monte_carlo(sex: str, current_age: int,
         monthly_expense=monthly_expense,
         pension_monthly=pension_monthly,
         pension_start_age=pension_start_age,
+        monthly_income=monthly_income,
+        income_until_age=income_until_age,
         stock_ratio=stock_ratio,
         n_simulations=n_simulations,
     )
@@ -166,7 +170,7 @@ TOOLS = [
     },
     {
         "name": "run_monte_carlo",
-        "description": "초기 자산·월 지출·연금을 입력받아 10,000회 생애 시뮬레이션을 실행. 자산 고갈 확률과 연령별 자산 퍼센타일 경로를 반환합니다.",
+        "description": "초기 자산·월 지출·연금·근로소득을 입력받아 10,000회 생애 시뮬레이션을 실행. 자산 고갈 확률과 연령별 자산 퍼센타일 경로를 반환합니다.",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -176,6 +180,8 @@ TOOLS = [
                 "monthly_expense":   {"type": "number",  "description": "월 지출 (만원)"},
                 "pension_monthly":   {"type": "number",  "description": "월 연금 (만원)"},
                 "pension_start_age": {"type": "integer"},
+                "monthly_income":    {"type": "number",  "description": "월 근로소득 (만원), 없으면 0", "default": 0},
+                "income_until_age":  {"type": "integer", "description": "근로소득 종료 연령 (기본 60세)", "default": 60},
                 "stock_ratio":       {"type": "number",  "default": 0.4},
                 "smoking":           {"type": "boolean", "default": False},
                 "chronic_disease":   {"type": "boolean", "default": False},

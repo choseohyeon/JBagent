@@ -21,12 +21,38 @@ MODEL_TOOL  = "llama3.1:8b"     # tool calling 담당
 MODEL_REPLY = "exaone3.5:7.8b"  # 한국어 응답 생성 담당
 
 
+_OUT_OF_SCOPE_KEYWORDS = [
+    "대출", "보험", "세금", "세무", "부동산", "주식 추천", "코인", "암호화폐",
+    "의료", "법률", "이혼", "상속", "증여", "취업", "창업",
+]
+_OUT_OF_SCOPE_REPLY = (
+    "대출·보험·세무 등은 이 서비스에서 제공하지 않습니다. "
+    "자산 수명 시뮬레이션, 연금 전략, 또래 비교, 이상 거래 탐지 중 궁금한 게 있으면 말씀해 주세요."
+)
+
+
 def run_agent(user_message: str, conversation_history: list, age: int = 65) -> tuple[str, list]:
     """
     사용자 메시지를 받아 Agent 응답 반환.
     1) llama3.1 이 tool 을 결정·호출
     2) tool 결과가 있으면 exaone3.5 가 자연스러운 한국어로 설명
     """
+    # 범위 밖 키워드 사전 필터
+    clean_msg = user_message.split("]")[-1] if "]" in user_message else user_message
+    if any(kw in clean_msg for kw in _OUT_OF_SCOPE_KEYWORDS):
+        history = conversation_history.copy()
+        history.append({"role": "user", "content": user_message})
+        history.append({"role": "assistant", "content": _OUT_OF_SCOPE_REPLY})
+        return _OUT_OF_SCOPE_REPLY, history
+
+    # 범위 밖 키워드 사전 필터
+    clean_msg = user_message.split("]")[-1] if "]" in user_message else user_message
+    if any(kw in clean_msg for kw in _OUT_OF_SCOPE_KEYWORDS):
+        history = conversation_history.copy()
+        history.append({"role": "user", "content": user_message})
+        history.append({"role": "assistant", "content": _OUT_OF_SCOPE_REPLY})
+        return _OUT_OF_SCOPE_REPLY, history
+
     system_prompt = get_system_prompt(age)
     history = conversation_history.copy()
     history.append({"role": "user", "content": user_message})
@@ -76,7 +102,7 @@ def run_agent(user_message: str, conversation_history: list, age: int = 65) -> t
             if tool_results:
                 reply = _korean_reply(user_message, tool_results, age)
             else:
-                reply = content.strip()
+                reply = "대출, 보험, 세무 등 이 서비스 범위 밖의 질문입니다. 자산 수명 시뮬레이션, 연금 전략, 또래 비교, 이상 거래 탐지 중 궁금한 게 있으면 말씀해 주세요."
 
             history.append({"role": "assistant", "content": reply})
             return reply, history
@@ -101,9 +127,46 @@ def run_agent(user_message: str, conversation_history: list, age: int = 65) -> t
             })
 
     # 최대 루프 초과 — 결과가 있으면 exaone 으로 마무리
-    reply = _korean_reply(user_message, tool_results, age) if tool_results else "계산을 완료했습니다."
+    reply = _korean_reply(user_message, tool_results, age) if tool_results else _korean_short_reply(user_message, age)
     history.append({"role": "assistant", "content": reply})
     return reply, history
+
+
+_TOOL_LABEL = {
+    "run_survival":      "생존 분석",
+    "run_monte_carlo":   "자산 수명 시뮬레이션",
+    "run_pension":       "연금 최적화",
+    "run_portfolio":     "포트폴리오 최적화",
+    "run_clustering":    "또래 비교 분석",
+    "run_anomaly_score": "이상 거래 탐지",
+}
+
+_TOOL_NAMES_RE = re.compile(
+    r'\b(run_survival|run_monte_carlo|run_pension|run_portfolio'
+    r'|run_clustering|run_anomaly_score)\b',
+    re.IGNORECASE,
+)
+
+def _korean_short_reply(user_message: str, age: int) -> str:
+    """도구 호출 없이 답변할 때 — 1~2문장으로만"""
+    system_prompt = get_system_prompt(age)
+    prompt = (
+        f"사용자 질문: {user_message}\n\n"
+        "이 서비스는 자산 수명 시뮬레이션, 연금 전략, 또래 비교, 이상 거래 탐지를 제공합니다.\n"
+        "질문이 서비스 범위 밖이면 한 문장으로 간단히 안내하고 끝내세요.\n"
+        "절대 재무 분석·조언을 추가하지 마세요. 1~2문장만 작성하세요."
+    )
+    response = client.chat.completions.create(
+        model=MODEL_REPLY,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user",   "content": prompt},
+        ],
+    )
+    raw = (response.choices[0].message.content or "").strip()
+    for en, ko in _TOOL_LABEL.items():
+        raw = re.sub(rf'\b{en}\b', f'"{ko}"', raw, flags=re.IGNORECASE)
+    return raw
 
 
 def _korean_reply(user_message: str, tool_results: list[tuple[str, dict]], age: int) -> str:
@@ -112,14 +175,16 @@ def _korean_reply(user_message: str, tool_results: list[tuple[str, dict]], age: 
 
     results_text = ""
     for name, result in tool_results:
-        results_text += f"\n[{name} 계산 결과]\n{json.dumps(result, ensure_ascii=False, indent=2)}\n"
+        label = _TOOL_LABEL.get(name, name)
+        results_text += f"\n[{label} 결과]\n{json.dumps(result, ensure_ascii=False, indent=2)}\n"
 
     prompt = (
         f"사용자 질문: {user_message}\n\n"
         f"통계 모델이 계산한 결과:{results_text}\n"
         "위 계산 결과를 바탕으로 사용자에게 자연스럽고 따뜻한 한국어로 설명해 주세요.\n"
         "전문 용어는 쉬운 말로 바꾸고, 가장 중요한 수치를 첫 문장에 제시하세요.\n"
-        "전체 3~5문장으로 간결하게 작성하세요."
+        "전체 3~5문장으로 간결하게 작성하세요.\n"
+        "절대로 'run_portfolio', 'run_monte_carlo' 같은 영문 함수명을 응답에 쓰지 마세요."
     )
 
     response = client.chat.completions.create(
@@ -129,7 +194,11 @@ def _korean_reply(user_message: str, tool_results: list[tuple[str, dict]], age: 
             {"role": "user", "content": prompt},
         ],
     )
-    return (response.choices[0].message.content or "").strip()
+    raw = (response.choices[0].message.content or "").strip()
+    # 혹시 남아 있는 tool 이름 한국어로 대체
+    for en, ko in _TOOL_LABEL.items():
+        raw = re.sub(rf'\b{en}\b', f'"{ko}"', raw, flags=re.IGNORECASE)
+    return raw
 
 
 def handle_tool_call(tool_name: str, tool_input: dict) -> dict:

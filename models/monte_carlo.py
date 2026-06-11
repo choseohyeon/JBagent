@@ -21,6 +21,8 @@ class SimulationInput:
     pension_start_age: int     # 연금 수령 시작 연령
     stock_ratio: float = 0.4   # 주식 비중 (0~1), 나머지는 채권
     n_simulations: int = 10_000
+    monthly_income: float = 0.0    # 월 근로소득 (만원) — 0이면 없음
+    income_until_age: int = 60     # 근로소득 종료 연령
 
 
 class SimulationResult(NamedTuple):
@@ -251,10 +253,16 @@ class MonteCarloSimulator:
                 inp.pension_monthly * 12 * cum_infl, 0.0
             )
 
+            # 근로소득: income_until_age 이전까지만
+            income_yr = np.where(
+                base_age + yr < inp.income_until_age,
+                inp.monthly_income * 12, 0.0
+            )
+
             # 지출: 물가 반영
             expense_yr = base_annual_exp * cum_infl
 
-            net_draw   = expense_yr + medical[:, yr] - pension_yr
+            net_draw   = expense_yr + medical[:, yr] - pension_yr - income_yr
             new_assets = current * (1 + port_r[:, yr]) - net_draw
 
             # 최초 고갈 기록
@@ -338,7 +346,9 @@ class MonteCarloSimulator:
             cum_infl = np.prod(1 + infl[:, :yr], axis=1) if yr > 0 else np.ones(N)
             pension  = np.where(base_age + yr >= inp.pension_start_age,
                                 inp.pension_monthly * 12 * cum_infl, 0.0)
-            net_draw = base_annual_exp * cum_infl + medical[:, yr] - pension
+            income   = np.where(base_age + yr < inp.income_until_age,
+                                inp.monthly_income * 12, 0.0)
+            net_draw = base_annual_exp * cum_infl + medical[:, yr] - pension - income
             new_a    = assets * (1 + port_r[:, yr]) - net_draw
             first_dep = alive & (assets > 0) & (new_a <= 0)
             depletion_ages[first_dep] = base_age + yr + 1
