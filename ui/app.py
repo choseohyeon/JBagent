@@ -344,12 +344,23 @@ def _show_onboarding():
 
     val = st.text_input("입력", key=f"input_{step}", label_visibility="collapsed",
                         placeholder=f"숫자만 입력 (단위: {unit})")
-    if st.button("다음 →", key=f"btn_{step}"):
-        cleaned = val.strip().replace(",", "")
-        if cleaned.isdigit():
-            _save_step(key, int(cleaned))
-        else:
-            st.warning("숫자만 입력해주세요.")
+
+    col_back, col_next = st.columns([1, 3])
+    with col_back:
+        if st.button("← 이전", key=f"back_{step}"):
+            if step == 0:
+                # 첫 단계면 기능 선택으로 돌아가기
+                st.session_state.selected_feature = None
+            else:
+                st.session_state.step -= 1
+            st.rerun()
+    with col_next:
+        if st.button("다음 →", key=f"btn_{step}", use_container_width=True):
+            cleaned = val.strip().replace(",", "")
+            if cleaned.isdigit():
+                _save_step(key, int(cleaned))
+            else:
+                st.warning("숫자만 입력해주세요.")
 
     st.progress(step / len(ONBOARDING))
     st.caption(f"{step + 1} / {len(ONBOARDING)} 단계")
