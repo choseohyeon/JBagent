@@ -598,7 +598,7 @@ def main():
 
     if st.session_state.ui_mode is None:
         _show_mode_select()
-    elif st.session_state.ui_mode == "버튼 모드" and st.session_state.selected_feature is None:
+    elif st.session_state.selected_feature is None:
         _show_feature_select()
     elif st.session_state.step < len(ONBOARDING):
         _show_onboarding()
