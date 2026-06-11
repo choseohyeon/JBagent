@@ -54,7 +54,7 @@ def _init():
         "active_button": None,
         "voice_mode": False,
         "pending_question": None,
-        "ui_mode": "버튼 모드",       # "버튼 모드" | "채팅 모드"
+        "ui_mode": None,              # None | "버튼 모드" | "채팅 모드"
         "chat_messages": [],          # 채팅 모드용 표시 메시지
     }
     for k, v in defaults.items():
@@ -243,6 +243,48 @@ def _pension_chart(pension_data: dict, base_monthly: float) -> go.Figure:
     )
     fig.update_yaxes(range=[0, max(amounts) * 1.2])
     return fig
+
+# ── 모드 선택 ────────────────────────────────────────────────────────────────
+
+def _show_mode_select():
+    st.markdown("## 어떤 방식으로 이용하시겠어요?")
+    st.markdown("")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("""
+        <div style='background:#EBF2FF; border:2px solid #1B4F8A; border-radius:16px;
+                    padding:32px 20px; text-align:center;'>
+            <div style='font-size:48px;'>🔘</div>
+            <div style='font-size:22px; font-weight:bold; color:#1B4F8A; margin-top:12px;'>버튼 모드</div>
+            <div style='font-size:15px; color:#555; margin-top:10px;'>
+                준비된 질문 버튼을 눌러<br>간편하게 확인하는 방식<br><br>
+                <b>어르신께 추천</b>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown("")
+        if st.button("버튼 모드 선택", key="select_btn", use_container_width=True):
+            st.session_state.ui_mode = "버튼 모드"
+            st.rerun()
+
+    with col2:
+        st.markdown("""
+        <div style='background:#E8F5E9; border:2px solid #2E7D32; border-radius:16px;
+                    padding:32px 20px; text-align:center;'>
+            <div style='font-size:48px;'>💬</div>
+            <div style='font-size:22px; font-weight:bold; color:#2E7D32; margin-top:12px;'>채팅 모드</div>
+            <div style='font-size:15px; color:#555; margin-top:10px;'>
+                궁금한 것을 자유롭게<br>대화하듯 물어보는 방식<br><br>
+                <b>자유로운 질문 가능</b>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown("")
+        if st.button("채팅 모드 선택", key="select_chat", use_container_width=True):
+            st.session_state.ui_mode = "채팅 모드"
+            st.rerun()
+
 
 # ── 온보딩 ────────────────────────────────────────────────────────────────────
 
@@ -472,16 +514,16 @@ def main():
         st.markdown("## LifeLong WM")
         st.divider()
 
-        # UI 모드 선택
-        ui_mode = st.radio(
-            "화면 방식",
-            ["버튼 모드", "채팅 모드"],
-            index=0 if st.session_state.ui_mode == "버튼 모드" else 1,
-            help="버튼 모드: 어르신 전용 간편 화면 / 채팅 모드: 자유롭게 대화",
-        )
-        if ui_mode != st.session_state.ui_mode:
-            st.session_state.ui_mode = ui_mode
-            st.rerun()
+        # UI 모드 전환 (모드 선택 완료 후에만 표시)
+        if st.session_state.ui_mode is not None:
+            ui_mode = st.radio(
+                "화면 방식",
+                ["버튼 모드", "채팅 모드"],
+                index=0 if st.session_state.ui_mode == "버튼 모드" else 1,
+            )
+            if ui_mode != st.session_state.ui_mode:
+                st.session_state.ui_mode = ui_mode
+                st.rerun()
 
         st.divider()
 
@@ -502,6 +544,7 @@ def main():
                 "result_text": None, "sim_result": None,
                 "pension_result": None, "active_button": None,
                 "pending_question": None, "chat_messages": [],
+                "ui_mode": None,
             })
             st.rerun()
 
@@ -514,7 +557,9 @@ def main():
 
     st.markdown("# 내 노후 재무 AI 동반자")
 
-    if st.session_state.step < len(ONBOARDING):
+    if st.session_state.ui_mode is None:
+        _show_mode_select()
+    elif st.session_state.step < len(ONBOARDING):
         _show_onboarding()
     elif st.session_state.ui_mode == "채팅 모드":
         _show_chat()
