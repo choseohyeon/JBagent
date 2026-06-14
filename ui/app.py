@@ -110,7 +110,7 @@ def _apply_css(age: int = 65):
     size = "20px" if age >= 75 else "18px" if age >= 65 else "16px"
     st.markdown(f"""
     <style>
-        .main .block-container {{ max-width: 740px; padding-top: 1rem; }}
+        .main .block-container {{ max-width: 760px; padding-top: 1.2rem; }}
         p, li, .stMarkdown {{ font-size: {size} !important; line-height: 1.8; color: #1A2744; }}
         div[data-testid="stChatMessage"] {{ font-size: {size} !important; }}
 
@@ -132,21 +132,23 @@ def _apply_css(age: int = 65):
             box-shadow: 0 3px 12px rgba(27,79,138,0.13) !important;
         }}
 
-        /* 메인 메뉴 버튼 */
+        /* 메인 메뉴 버튼 — 2×2 그리드, 높이 고정 */
         .menu-btn button {{
-            height: 90px !important;
+            height: 110px !important;
             white-space: pre-wrap !important;
-            line-height: 1.6 !important;
+            line-height: 1.7 !important;
             font-size: {size} !important;
             font-weight: 600 !important;
-            background: #FFFFFF !important;
+            background: #F7FAFF !important;
             border: 1.5px solid #C8D8F0 !important;
             color: #1A2744 !important;
+            border-radius: 14px !important;
         }}
         .menu-btn button:hover {{
-            background: #EBF2FF !important;
+            background: #E4EFFF !important;
             border-color: #1B4F8A !important;
             color: #1B4F8A !important;
+            box-shadow: 0 4px 14px rgba(27,79,138,0.13) !important;
         }}
 
         /* 프라이머리 버튼 */
@@ -156,6 +158,7 @@ def _apply_css(age: int = 65):
             border-color: #1B4F8A !important;
             font-weight: 600 !important;
             box-shadow: 0 2px 8px rgba(27,79,138,0.25) !important;
+            border-radius: 10px !important;
         }}
         .btn-primary button:hover {{
             background: #163F70 !important;
@@ -165,21 +168,64 @@ def _apply_css(age: int = 65):
         /* 모드 선택 카드 */
         .mode-card {{
             border: 1.5px solid #D5E3F5;
-            border-radius: 14px;
-            padding: 24px 20px;
+            border-radius: 16px;
+            padding: 28px 22px 16px;
             background: #FFFFFF;
             box-shadow: 0 2px 10px rgba(27,79,138,0.06);
-            margin-bottom: 12px;
+            margin-bottom: 10px;
+            text-align: center;
         }}
 
-        /* 기능 선택 카드 */
-        .feature-card {{
+        /* 기능 선택 카드 (2×2 그리드) */
+        .feature-header {{
+            border: 1.5px solid #E2EAF6;
+            border-radius: 14px 14px 0 0;
+            padding: 18px 16px 10px;
+            background: #F7FAFF;
+            text-align: center;
+        }}
+        .feature-header-icon {{ font-size: 28px; margin-bottom: 6px; }}
+        .feature-header-desc {{ font-size: 12px; color: #7A8FA6; line-height: 1.5; margin-top: 4px; }}
+
+        /* 기능 버튼 — 카드 하단에 붙임 */
+        .feature-btn button {{
+            border-radius: 0 0 14px 14px !important;
+            border: 1.5px solid #C8D8F0 !important;
+            border-top: none !important;
+            background: #FFFFFF !important;
+            color: #1B4F8A !important;
+            font-weight: 600 !important;
+            font-size: 15px !important;
+            padding: 10px !important;
+        }}
+        .feature-btn button:hover {{
+            background: #E4EFFF !important;
+            color: #1B4F8A !important;
+        }}
+
+        /* 구간 선택 버튼 */
+        .range-btn button {{
+            border-radius: 8px !important;
+            border: 1.5px solid #D5E0EF !important;
+            background: #F7FAFF !important;
+            color: #1A2744 !important;
+            font-size: 15px !important;
+            font-weight: 500 !important;
+            padding: 10px 6px !important;
+        }}
+        .range-btn button:hover {{
+            border-color: #1B4F8A !important;
+            background: #E4EFFF !important;
+            color: #1B4F8A !important;
+        }}
+
+        /* 프로필 요약 카드 */
+        .profile-card {{
             border: 1.5px solid #E2EAF6;
             border-radius: 12px;
-            padding: 16px 18px;
-            background: #FFFFFF;
-            box-shadow: 0 1px 5px rgba(27,79,138,0.05);
-            margin-bottom: 8px;
+            padding: 14px 20px;
+            background: #F7FAFF;
+            margin-bottom: 20px;
         }}
 
         .stTextInput input {{
@@ -193,11 +239,14 @@ def _apply_css(age: int = 65):
         .stProgress > div > div {{ background: #1B4F8A; border-radius: 4px; }}
         hr {{ border-color: #E8EFF8; margin: 1.2rem 0; }}
 
-        /* 사이드바 — 밝은 스타일 */
+        /* 사이드바 */
         section[data-testid="stSidebar"] {{
             background: #FFFFFF;
             border-right: 1px solid #E2EAF6;
         }}
+
+        /* 컬럼 간격 */
+        div[data-testid="column"] {{ padding: 0 6px !important; }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -333,18 +382,23 @@ def _pension_chart(pension_data: dict, base_monthly: float) -> go.Figure:
 # ── 모드 선택 ────────────────────────────────────────────────────────────────
 
 def _show_mode_select():
-    st.markdown("<div style='text-align:center; margin-bottom:24px;'><span style='font-size:22px; font-weight:700; color:#1B4F8A;'>어떻게 이용하실래요?</span></div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div style='text-align:center; margin-bottom:28px;'>"
+        "<span style='font-size:22px; font-weight:700; color:#1B4F8A;'>어떻게 이용하실래요?</span>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
 
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns(2, gap="medium")
     with col1:
         st.markdown("""
         <div class="mode-card">
-            <div style='font-size:32px; margin-bottom:10px;'>🖱️</div>
-            <div style='font-size:17px; font-weight:700; color:#1B4F8A; margin-bottom:6px;'>버튼 모드</div>
-            <div style='font-size:14px; color:#555; line-height:1.6;'>준비된 항목 중에서<br>골라 확인하는 방식</div>
+            <div style='font-size:36px; margin-bottom:12px;'>🖱️</div>
+            <div style='font-size:17px; font-weight:700; color:#1B4F8A; margin-bottom:8px;'>버튼 모드</div>
+            <div style='font-size:14px; color:#7A8FA6; line-height:1.7;'>준비된 항목 중에서<br>골라 확인하는 방식</div>
         </div>
         """, unsafe_allow_html=True)
-        st.markdown('<div class="btn-primary">', unsafe_allow_html=True)
+        st.markdown('<div class="btn-primary" style="margin-top:8px;">', unsafe_allow_html=True)
         if st.button("버튼 모드로 시작 →", key="select_btn", use_container_width=True):
             st.session_state.ui_mode = "버튼 모드"
             st.rerun()
@@ -353,48 +407,54 @@ def _show_mode_select():
     with col2:
         st.markdown("""
         <div class="mode-card">
-            <div style='font-size:32px; margin-bottom:10px;'>💬</div>
-            <div style='font-size:17px; font-weight:700; color:#1B4F8A; margin-bottom:6px;'>채팅 모드</div>
-            <div style='font-size:14px; color:#555; line-height:1.6;'>궁금한 것을<br>자유롭게 대화하는 방식</div>
+            <div style='font-size:36px; margin-bottom:12px;'>💬</div>
+            <div style='font-size:17px; font-weight:700; color:#1B4F8A; margin-bottom:8px;'>채팅 모드</div>
+            <div style='font-size:14px; color:#7A8FA6; line-height:1.7;'>궁금한 것을<br>자유롭게 대화하는 방식</div>
         </div>
         """, unsafe_allow_html=True)
+        st.markdown('<div style="margin-top:8px;">', unsafe_allow_html=True)
         if st.button("채팅 모드로 시작 →", key="select_chat", use_container_width=True):
             st.session_state.ui_mode = "채팅 모드"
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ── 기능 선택 ────────────────────────────────────────────────────────────────
 
 def _show_feature_select():
-    st.markdown("<div style='text-align:center; margin-bottom:20px;'><span style='font-size:22px; font-weight:700; color:#1B4F8A;'>무엇이 궁금하세요?</span></div>", unsafe_allow_html=True)
+    st.markdown(
+        "<div style='text-align:center; margin-bottom:24px;'>"
+        "<span style='font-size:22px; font-weight:700; color:#1B4F8A;'>무엇이 궁금하세요?</span>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
 
     features = [
-        ("📊", "내 자산 얼마나 버티나요?",     "Monte Carlo 10,000회 시뮬레이션으로 자산 수명과 고갈 확률 계산"),
-        ("🏦", "연금 언제 받는 게 좋을까요?",   "수령 시기별 총 수령액·손익분기 연령 비교"),
-        ("👥", "또래랑 비교해주세요",            "비슷한 처지 가구 대비 내 자산 순위"),
-        ("✂️", "지출 줄이면 어떻게 되나요?",    "지출 20% 절감 시 자산 수명 재시뮬레이션"),
+        ("📊", "내 자산 얼마나\n버티나요?",      "Monte Carlo 10,000회\n자산 수명·고갈 확률 계산"),
+        ("🏦", "연금 언제 받는 게\n좋을까요?",    "수령 시기별 총 수령액\n손익분기 연령 비교"),
+        ("👥", "또래랑\n비교해주세요",             "비슷한 처지 가구 대비\n내 자산 순위"),
+        ("✂️", "지출 줄이면\n어떻게 되나요?",     "지출 20% 절감 시\n자산 수명 재시뮬레이션"),
     ]
 
+    col1, col2 = st.columns(2, gap="medium")
+    cols = [col1, col2, col1, col2]
     for i, (icon, title, desc) in enumerate(features):
-        col_txt, col_btn = st.columns([5, 1])
-        with col_txt:
+        with cols[i]:
+            # 아이콘 + 설명 헤더
             st.markdown(f"""
-            <div class="feature-card">
-                <div style='display:flex; align-items:center; gap:12px;'>
-                    <span style='font-size:26px;'>{icon}</span>
-                    <div>
-                        <div style='font-size:16px; font-weight:700; color:#1a1a1a;'>{title}</div>
-                        <div style='font-size:13px; color:#666; margin-top:3px;'>{desc}</div>
-                    </div>
-                </div>
+            <div class="feature-header">
+                <div class="feature-header-icon">{icon}</div>
+                <div class="feature-header-desc">{desc.replace(chr(10), '<br>')}</div>
             </div>
             """, unsafe_allow_html=True)
-        with col_btn:
-            st.markdown('<div class="btn-primary" style="margin-top:8px;">', unsafe_allow_html=True)
-            if st.button("선택", key=f"feat_{i}", use_container_width=True):
+            # 제목이 버튼 텍스트 — 헤더에 맞닿도록
+            st.markdown('<div class="feature-btn">', unsafe_allow_html=True)
+            if st.button(title, key=f"feat_{i}", use_container_width=True):
                 st.session_state.selected_feature = i
                 st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
+        if i == 1:
+            st.markdown('<div style="height:16px;"></div>', unsafe_allow_html=True)
 
 
 # ── 온보딩 ────────────────────────────────────────────────────────────────────
@@ -403,36 +463,45 @@ def _show_onboarding():
     step = st.session_state.step
     key, question, unit = ONBOARDING[step]
 
-    st.markdown(f"### {question}")
+    # ── 진행 상태 (상단) ──────────────────────────────────────────────────────
+    st.progress((step) / len(ONBOARDING))
+    st.markdown(
+        f"<div style='text-align:right; font-size:13px; color:#7A8FA6; margin:-6px 0 16px;'>"
+        f"{step + 1} / {len(ONBOARDING)} 단계</div>",
+        unsafe_allow_html=True,
+    )
 
-    ranges = RANGES.get(key)
+    st.markdown(f"### {question}")
 
     if key == "monthly_income":
         st.caption("근로소득·사업소득·임대소득 합산. 없으면 '없음' 선택. (60세까지 유지된다고 가정합니다)")
+
+    ranges = RANGES.get(key)
 
     if ranges:
         # ── 구간 선택 버튼 ────────────────────────────────────────────
         st.markdown("**아래에서 가장 가까운 구간을 골라주세요**")
         ncols = 3 if key in ("assets", "pension_start_age") else 2
-        cols = st.columns(ncols)
+        cols = st.columns(ncols, gap="small")
         for idx, (label, val) in enumerate(ranges):
             with cols[idx % ncols]:
+                st.markdown('<div class="range-btn">', unsafe_allow_html=True)
                 if st.button(label, key=f"range_{step}_{idx}", use_container_width=True):
                     _save_step(key, val, label=label)
+                st.markdown('</div>', unsafe_allow_html=True)
 
-        st.markdown("---")
-        st.markdown("**정확한 금액을 알고 계신 분은 직접 입력하세요**")
+        st.markdown("<div style='margin:20px 0 8px; font-size:14px; color:#7A8FA6; text-align:center;'>─── 또는 직접 입력 ───</div>", unsafe_allow_html=True)
         st.caption(f"{unit} 단위 숫자만 입력")
     else:
-        # age 항목: 직접 입력만
         st.caption(f"{unit} 단위로 입력해주세요")
 
     val = st.text_input("입력", key=f"input_{step}", label_visibility="collapsed",
                         placeholder=f"숫자만 입력 (단위: {unit})")
 
-    col_back, col_next = st.columns([1, 3])
+    st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
+    col_back, col_next = st.columns([1, 3], gap="small")
     with col_back:
-        if st.button("← 이전", key=f"back_{step}"):
+        if st.button("← 이전", key=f"back_{step}", use_container_width=True):
             if step == 0:
                 if st.session_state.ui_mode == "채팅 모드":
                     st.session_state.ui_mode = None
@@ -442,15 +511,14 @@ def _show_onboarding():
                 st.session_state.step -= 1
             st.rerun()
     with col_next:
+        st.markdown('<div class="btn-primary">', unsafe_allow_html=True)
         if st.button("다음 →", key=f"btn_{step}", use_container_width=True):
             cleaned = val.strip().replace(",", "")
             if cleaned.isdigit():
                 _save_step(key, int(cleaned))
             else:
                 st.warning("숫자만 입력해주세요.")
-
-    st.progress(step / len(ONBOARDING))
-    st.caption(f"{step + 1} / {len(ONBOARDING)} 단계")
+        st.markdown('</div>', unsafe_allow_html=True)
 
 
 def _save_step(key, value, label: str = None):
@@ -487,34 +555,37 @@ def _show_main():
         st.session_state.conv_history = []
         st.rerun()
 
-    # 프로필 요약
-    income_line = f"월 소득 {income_disp}　" if income > 0 or "monthly_income" in lbl else ""
+    # ── 프로필 요약 카드 ──────────────────────────────────────────────────────
+    income_line = f"<span style='margin-right:20px;'>💼 월 소득 {income_disp}</span>" if income > 0 or "monthly_income" in lbl else ""
     st.markdown(f"""
-    <div style='border:1px solid #E0E0E0; border-radius:8px; padding:14px 18px; margin-bottom:20px;'>
-        <div style='font-size:18px; font-weight:600; color:#111;'>{age}세 · 자산 {assets_disp}</div>
-        <div style='font-size:15px; color:#666; margin-top:4px;'>
-            {income_line}월 지출 {expense_disp}　월 연금 {pension_disp}
+    <div class="profile-card">
+        <div style='font-size:17px; font-weight:700; color:#1A2744; margin-bottom:6px;'>
+            👤 {age}세 &nbsp;·&nbsp; 💰 자산 {assets_disp}
+        </div>
+        <div style='font-size:14px; color:#5A6A80; display:flex; flex-wrap:wrap; gap:4px 0;'>
+            {income_line}
+            <span style='margin-right:20px;'>🛒 월 지출 {expense_disp}</span>
+            <span>🏦 월 연금 {pension_disp}</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # 버튼 그리드 (2x2)
-    col1, col2 = st.columns(2)
+    # ── 버튼 그리드 (2×2) ────────────────────────────────────────────────────
+    col1, col2 = st.columns(2, gap="medium")
     buttons = [col1, col2, col1, col2]
 
     for i, (label, prompt) in enumerate(MENU):
         with buttons[i]:
-            with st.container():
-                st.markdown('<div class="menu-btn">', unsafe_allow_html=True)
-                if st.button(label, key=f"menu_{i}", use_container_width=True):
-                    st.session_state.pending_question = _inject_profile(prompt)
-                    st.session_state.result_text = None
-                    st.session_state.sim_result = None
-                    st.session_state.pension_result = None
-                    st.session_state.active_button = i
-                    st.session_state.conv_history = []
-                    st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown('<div class="menu-btn">', unsafe_allow_html=True)
+            if st.button(label, key=f"menu_{i}", use_container_width=True):
+                st.session_state.pending_question = _inject_profile(prompt)
+                st.session_state.result_text = None
+                st.session_state.sim_result = None
+                st.session_state.pension_result = None
+                st.session_state.active_button = i
+                st.session_state.conv_history = []
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
 
     st.divider()
 
@@ -537,54 +608,54 @@ def _show_main():
         st.rerun()
 
     if st.session_state.result_text:
-        # 팬 차트 (버튼1·4 — Monte Carlo)
+        # 팬 차트 (Monte Carlo)
         if st.session_state.sim_result and st.session_state.active_button != 1:
-            fig = _fan_chart(p, st.session_state.sim_result)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(_fan_chart(p, st.session_state.sim_result), use_container_width=True)
 
-        # 연금 막대 차트 (버튼2 — 연금 시기)
+        # 연금 막대 차트
         if st.session_state.pension_result and st.session_state.active_button == 1:
             pr = st.session_state.pension_result
             adj = pr.get("adjustment_rate", 1.0)
             monthly_opt = pr.get("monthly_at_optimal", 0)
             if monthly_opt > 10000:
                 monthly_opt = monthly_opt / 10000
-            base_monthly = round(monthly_opt / (1 + adj), 1)
-            fig = _pension_chart(pr, base_monthly)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(_pension_chart(pr, round(monthly_opt / (1 + adj), 1)), use_container_width=True)
 
         # 결과 카드
-        st.markdown("---")
-        st.markdown(st.session_state.result_text)
+        st.markdown(
+            f"<div style='background:#F7FAFF; border:1.5px solid #E2EAF6; border-radius:12px;"
+            f"padding:18px 22px; margin:16px 0; line-height:1.9;'>"
+            f"{st.session_state.result_text}</div>",
+            unsafe_allow_html=True,
+        )
 
         # ── 고위험 시 개선 방안 버튼 ─────────────────────────────────────────
         sim = st.session_state.sim_result
         if sim and sim.get("depletion_probability", 0) >= 0.5:
             depletion_pct = int(sim["depletion_probability"] * 100)
             st.markdown(f"""
-            <div style='border-left:3px solid #C0392B; padding:10px 16px; margin:16px 0;
-                        background:#FFF8F8; border-radius:0 6px 6px 0;'>
-                <span style='color:#C0392B; font-weight:600;'>자산 고갈 확률 {depletion_pct}%</span>
-                <span style='color:#555; font-size:14px;'> — 아래 방법으로 개선할 수 있는지 확인해보세요.</span>
+            <div style='border-left:4px solid #C0392B; padding:10px 16px; margin:12px 0 16px;
+                        background:#FFF5F5; border-radius:0 8px 8px 0;'>
+                <span style='color:#C0392B; font-weight:700;'>⚠️ 자산 고갈 확률 {depletion_pct}%</span>
+                <span style='color:#666; font-size:14px;'> — 아래 방법으로 개선해 보세요.</span>
             </div>
             """, unsafe_allow_html=True)
-            col1, col2, col3 = st.columns(3)
+            col1, col2, col3 = st.columns(3, gap="small")
             with col1:
-                if st.button("지출 20% 줄이면?", key="advice_expense", use_container_width=True):
+                if st.button("✂️ 지출 20% 줄이면?", key="advice_expense", use_container_width=True):
                     expense_reduced = p.get("monthly_expense", 0) * 0.8
                     new_p = dict(p)
                     new_p["monthly_expense"] = expense_reduced
-                    q = _inject_profile_custom(
+                    st.session_state.pending_question = _inject_profile_custom(
                         new_p,
                         f"월 지출을 {int(expense_reduced//10000)}만원으로 줄이면 자산이 얼마나 더 버티나요?"
                     )
-                    st.session_state.pending_question = q
                     st.session_state.result_text = None
                     st.session_state.sim_result = None
                     st.session_state.pension_result = None
                     st.rerun()
             with col2:
-                if st.button("소득 유지 기간 늘리면?", key="advice_income", use_container_width=True):
+                if st.button("💼 소득 기간 늘리면?", key="advice_income", use_container_width=True):
                     st.session_state.pending_question = _inject_profile(
                         "근로소득을 65세까지 유지하면 자산 고갈 확률이 어떻게 달라지나요? income_until_age=65로 재계산해주세요."
                     )
@@ -593,7 +664,7 @@ def _show_main():
                     st.session_state.pension_result = None
                     st.rerun()
             with col3:
-                if st.button("자산 배분 최적화하면?", key="advice_portfolio", use_container_width=True):
+                if st.button("📈 자산 배분 바꾸면?", key="advice_portfolio", use_container_width=True):
                     st.session_state.pending_question = _inject_profile(
                         "현재 상황에서 자산 배분을 최적화하면 위험을 얼마나 줄일 수 있나요? 보수적 포트폴리오로 계산해주세요."
                     )
