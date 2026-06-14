@@ -130,14 +130,18 @@ def _korean_short_reply(user_message: str, age: int) -> str:
         "반드시 순수 한국어로만 작성하세요. 영어·한자·힌디어 등 다른 언어 문자는 절대 사용하지 마세요.\n"
         "1~2문장으로만 작성하세요."
     )
-    response = client.chat.completions.create(
-        model=MODEL,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt},
-        ],
-    )
-    return _clean_tool_names(response.choices[0].message.content or "")
+    try:
+        response = client.chat.completions.create(
+            model=MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt},
+            ],
+        )
+        return _clean_tool_names(response.choices[0].message.content or "")
+    except Exception as e:
+        print(f"[Korean short reply error] {type(e).__name__}: {e}")
+        return "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."
 
 
 def _korean_reply(user_message: str, tool_results: list[tuple[str, dict]], age: int) -> str:
@@ -157,14 +161,18 @@ def _korean_reply(user_message: str, tool_results: list[tuple[str, dict]], age: 
         "절대로 'run_portfolio', 'run_monte_carlo' 같은 영문 함수명을 쓰지 마세요.\n"
         "반드시 순수 한국어로만 작성하세요. 영어·한자·힌디어 등 다른 언어 문자는 절대 사용하지 마세요."
     )
-    response = client.chat.completions.create(
-        model=MODEL,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt},
-        ],
-    )
-    return _clean_tool_names(response.choices[0].message.content or "")
+    try:
+        response = client.chat.completions.create(
+            model=MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt},
+            ],
+        )
+        return _clean_tool_names(response.choices[0].message.content or "")
+    except Exception as e:
+        print(f"[Korean reply error] {type(e).__name__}: {e}")
+        return "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."
 
 
 _FOREIGN_RE = re.compile(
@@ -188,6 +196,7 @@ def handle_tool_call(tool_name: str, tool_input: dict) -> dict:
     try:
         return call_tool(tool_name, tool_input)
     except Exception as e:
+        print(f"[Tool error] {tool_name}({tool_input}): {type(e).__name__}: {e}")
         return {"error": str(e)}
 
 
