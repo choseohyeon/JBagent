@@ -110,7 +110,7 @@ def _apply_css(age: int = 65):
     size = "20px" if age >= 75 else "18px" if age >= 65 else "16px"
     st.markdown(f"""
     <style>
-        .main .block-container {{ max-width: 760px; padding-top: 1.2rem; }}
+        .main .block-container {{ max-width: 560px; padding-top: 1.2rem; }}
         p, li, .stMarkdown {{ font-size: {size} !important; line-height: 1.8; color: #1A2744; }}
         div[data-testid="stChatMessage"] {{ font-size: {size} !important; }}
 
@@ -232,6 +232,10 @@ def _apply_css(age: int = 65):
             margin-bottom: 20px;
         }}
 
+        .stTextInput {{
+            max-width: 320px !important;
+            margin: 0 auto !important;
+        }}
         .stTextInput input {{
             font-size: {size} !important;
             padding: 12px 14px;
@@ -239,6 +243,7 @@ def _apply_css(age: int = 65):
             border: 1.5px solid #D5E0EF !important;
             background: #FFFFFF !important;
             color: #1A2744 !important;
+            text-align: center !important;
         }}
         .stProgress > div > div {{ background: #1B4F8A; border-radius: 4px; }}
         hr {{ border-color: #E8EFF8; margin: 1.2rem 0; }}
@@ -523,7 +528,7 @@ def _show_onboarding():
                         placeholder=f"숫자만 입력 (단위: {unit})")
 
     st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
-    col_back, col_next = st.columns([1, 3], gap="small")
+    _, col_back, col_next, _ = st.columns([1, 2, 5, 1], gap="small")
     with col_back:
         st.markdown('<div class="btn-secondary">', unsafe_allow_html=True)
         if st.button("← 이전", key=f"back_{step}", use_container_width=True):
