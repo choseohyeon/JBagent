@@ -132,10 +132,10 @@ def _apply_css(age: int = 65):
             margin-top: 4px;
         }}
 
-        /* ── 기본 버튼 ── */
+        /* ── 기본 버튼 (모든 버튼 공통) ── */
         .stButton > button {{
             font-size: {size} !important;
-            border-radius: 10px !important;
+            border-radius: 8px !important;
             border: 1.5px solid #D5E0EF !important;
             background: #FFFFFF !important;
             color: #1A2744 !important;
@@ -153,7 +153,7 @@ def _apply_css(age: int = 65):
         /* ── 모드 선택 카드 ── */
         .mode-card {{
             border: 1.5px solid #D5E3F5;
-            border-radius: 16px 16px 0 0;
+            border-radius: 8px 8px 0 0;
             padding: 22px 18px 16px;
             background: #FFFFFF;
             box-shadow: 0 2px 10px rgba(27,79,138,0.06);
@@ -161,7 +161,7 @@ def _apply_css(age: int = 65):
             margin-bottom: 0;
         }}
         .mode-card + div button, .mode-card + .btn-primary button {{
-            border-radius: 0 0 16px 16px !important;
+            border-radius: 0 0 8px 8px !important;
             border-top: none !important;
         }}
 
@@ -175,7 +175,7 @@ def _apply_css(age: int = 65):
             background: #F7FAFF !important;
             border: 1.5px solid #C8D8F0 !important;
             color: #1A2744 !important;
-            border-radius: 14px !important;
+            border-radius: 8px !important;
         }}
         .menu-btn button:hover {{
             background: #E4EFFF !important;
@@ -199,7 +199,7 @@ def _apply_css(age: int = 65):
             background: #F7FAFF !important;
             border: 1.5px solid #D5E3F5 !important;
             color: #1B4F8A !important;
-            border-radius: 14px !important;
+            border-radius: 8px !important;
             text-align: left !important;
             padding: 14px 16px !important;
         }}
@@ -222,21 +222,18 @@ def _apply_css(age: int = 65):
             border-color: #1B4F8A !important;
             font-weight: 600 !important;
             box-shadow: 0 2px 8px rgba(27,79,138,0.22) !important;
-            border-radius: 10px !important;
         }}
         .btn-primary button:hover {{
             background: #163F70 !important;
             box-shadow: 0 4px 14px rgba(27,79,138,0.32) !important;
         }}
         .btn-secondary button {{
-            border-radius: 10px !important;
             font-weight: 500 !important;
             color: #5A6A80 !important;
         }}
 
         /* ── 구간 선택 버튼 ── */
         .range-btn button {{
-            border-radius: 8px !important;
             border: 1.5px solid #D5E0EF !important;
             background: #F7FAFF !important;
             color: #1A2744 !important;
@@ -253,7 +250,7 @@ def _apply_css(age: int = 65):
         /* ── 프로필 카드 ── */
         .profile-card {{
             border: 1.5px solid #E2EAF6;
-            border-radius: 12px;
+            border-radius: 8px;
             padding: 14px 20px;
             background: #F7FAFF;
             margin-bottom: 16px;
@@ -263,7 +260,7 @@ def _apply_css(age: int = 65):
         .result-card {{
             background: #F7FAFF;
             border: 1.5px solid #E2EAF6;
-            border-radius: 14px;
+            border-radius: 8px;
             padding: 20px 24px;
             margin: 14px 0;
             line-height: 1.9;
