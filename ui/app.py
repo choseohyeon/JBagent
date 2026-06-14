@@ -21,7 +21,7 @@ st.set_page_config(page_title="LifeLong WM", layout="centered")
 
 ONBOARDING = [
     ("age",              "나이가 어떻게 되세요?",                            "세"),
-    ("monthly_income",   "한 달 근로소득(월급·사업소득)이 얼마나 되세요?",   "만원"),
+    ("monthly_income",   "한 달 근로소득(월급,사업소득)이 얼마나 되세요?",   "만원"),
     ("assets",           "현재 갖고 계신 자산이 얼마나 되세요?",              "만원"),
     ("monthly_expense",  "한 달에 생활비를 얼마나 쓰시나요?",                "만원"),
     ("pension",          "국민연금은 한 달에 얼마나 받으실 예정인가요?",      "만원"),
@@ -368,7 +368,7 @@ def _fan_chart(profile: dict, sim: dict) -> go.Figure:
 
     depletion = int(sim.get("depletion_probability", 0) * 100)
     fig.update_layout(
-        title=dict(text=f"<b>자산 예측 경로</b>  ·  고갈 확률: "
+        title=dict(text=f"<b>자산 예측 경로</b>  ,  고갈 확률: "
                         f"<span style='color:red;font-weight:bold'>{depletion}%</span>",
                    font=dict(size=17)),
         xaxis_title="나이", yaxis_title="자산 (억원)",
@@ -435,10 +435,10 @@ def _pension_chart(pension_data: dict, base_monthly: float) -> go.Figure:
     breakeven = pension_data.get("breakeven_age", None)
     title_txt = (
         f"<b>연금 수령 시기별 월 수령액</b>"
-        f"  ·  최적: <span style='color:#E53935'>{optimal}세</span>"
+        f"  ,  최적: <span style='color:#E53935'>{optimal}세</span>"
     )
     if breakeven:
-        title_txt += f"  ·  손익분기: {breakeven:.0f}세"
+        title_txt += f"  ,  손익분기: {breakeven:.0f}세"
 
     fig.update_layout(
         title=dict(text=title_txt, font=dict(size=16)),
@@ -548,7 +548,7 @@ def _show_onboarding():
     st.markdown(f"### {question}")
 
     if key == "monthly_income":
-        st.caption("근로소득·사업소득·임대소득 합산. 없으면 '없음' 선택. (60세까지 유지된다고 가정합니다)")
+        st.caption("근로소득,사업소득,임대소득 합산. 없으면 '없음' 선택. (60세까지 유지된다고 가정합니다)")
 
     ranges = RANGES.get(key)
 
@@ -636,7 +636,7 @@ def _show_main():
     st.markdown(f"""
     <div class="profile-card">
         <div style='font-size:17px; font-weight:700; color:#1A2744; margin-bottom:6px;'>
-            {age}세 &nbsp;·&nbsp; 자산 {assets_disp}
+            {age}세 &nbsp;,&nbsp; 자산 {assets_disp}
         </div>
         <div style='font-size:14px; color:#5A6A80; display:flex; flex-wrap:wrap; gap:4px 0;'>
             {income_line}
@@ -756,7 +756,7 @@ def _show_main():
     # ── 이상 거래 탐지 폼 ─────────────────────────────────────────────────────
     st.markdown("---")
     with st.expander("이상 거래 탐지 — 거래 정보 직접 입력"):
-        st.caption("보이스피싱·이상 이체 여부를 분석합니다. 의심스러운 거래 정보를 입력해주세요.")
+        st.caption("보이스피싱,이상 이체 여부를 분석합니다. 의심스러운 거래 정보를 입력해주세요.")
         col_a, col_b = st.columns(2)
         with col_a:
             tx_amount = st.number_input("거래 금액 (만원)", min_value=0.0, value=100.0, step=10.0, key="tx_amount")
