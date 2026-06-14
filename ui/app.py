@@ -763,13 +763,31 @@ def _show_chat():
     # 첫 진입 시 자산 시뮬레이션 자동 실행 (플래그를 API 호출 전에 세팅해 무한 루프 방지)
     if not st.session_state.chat_messages and not st.session_state.chat_init_attempted:
         st.session_state.chat_init_attempted = True
+        welcome = (
+            f"안녕하세요! 입력하신 정보를 바탕으로 재무 상담을 도와드리겠습니다.\n\n"
+            "아래와 같은 질문을 해보세요:\n"
+            "- 내 자산이 얼마나 버티나요?\n"
+            "- 연금을 언제 받는 게 좋을까요?\n"
+            "- 또래랑 비교해주세요\n"
+            "- 지출을 줄이면 어떻게 되나요?"
+        )
+        is_error = False
         with st.spinner("기본 자산 분석 중..."):
-            init_q = _inject_profile("내 자산이 얼마나 버티는지 Monte Carlo 시뮬레이션으로 계산해주세요.")
-            reply, updated = run_agent(init_q, [], age=age)
+            try:
+                init_q = _inject_profile("내 자산이 얼마나 버티는지 Monte Carlo 시뮬레이션으로 계산해주세요.")
+                reply, updated = run_agent(init_q, [], age=age)
+                if any(kw in reply for kw in ["오류", "잠시 후", "실패", "error", "Error"]):
+                    is_error = True
+                    reply = welcome
+                    updated = []
+            except Exception:
+                is_error = True
+                reply = welcome
+                updated = []
         st.session_state.conv_history = updated
         sim = _extract_sim(updated)
         ai_msg: dict = {"role": "assistant", "content": reply}
-        if sim:
+        if sim and not is_error:
             ai_msg["chart"] = "fan"
             ai_msg["sim"]   = sim
         st.session_state.chat_messages.append(ai_msg)
