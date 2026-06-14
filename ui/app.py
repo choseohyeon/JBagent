@@ -95,9 +95,9 @@ def _init():
         "pension_result": None,
         "active_button": None,
         "pending_question": None,
-        "ui_mode": None,              # None | "버튼 모드" | "채팅 모드"
+        "ui_mode": None,              # None | "버튼 모드" | "직접 질문"
         "selected_feature": None,     # 선택한 기능 인덱스 (0~3)
-        "chat_messages": [],          # 채팅 모드용 표시 메시지
+        "chat_messages": [],          # 직접 질문용 표시 메시지
         "chat_init_attempted": False, # 채팅 첫 자동 실행 여부 (무한루프 방지)
     }
     for k, v in defaults.items():
@@ -469,13 +469,13 @@ def _show_mode_select():
     with col2:
         st.markdown("""
         <div class="mode-card">
-            <div style='font-size:20px; font-weight:700; color:#1B4F8A; margin-bottom:8px;'>채팅 모드</div>
-            <div style='font-size:13px; color:#8FA3BE; line-height:1.7;'>궁금한 것을<br>자유롭게 대화하는 방식</div>
+            <div style='font-size:20px; font-weight:700; color:#1B4F8A; margin-bottom:8px;'>직접 질문</div>
+            <div style='font-size:13px; color:#8FA3BE; line-height:1.7;'>궁금한 것을<br>직접 입력해서 물어보는 방식</div>
         </div>
         """, unsafe_allow_html=True)
         st.markdown('<div style="margin-top:0;">', unsafe_allow_html=True)
         if st.button("선택하기", key="select_chat", use_container_width=True):
-            st.session_state.ui_mode = "채팅 모드"
+            st.session_state.ui_mode = "직접 질문"
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -580,7 +580,7 @@ def _show_onboarding():
         st.markdown('<div class="btn-secondary">', unsafe_allow_html=True)
         if st.button("← 이전", key=f"back_{step}", use_container_width=True):
             if step == 0:
-                if st.session_state.ui_mode == "채팅 모드":
+                if st.session_state.ui_mode == "직접 질문":
                     st.session_state.ui_mode = None
                 else:
                     st.session_state.selected_feature = None
@@ -812,7 +812,7 @@ def _show_main():
 
 
 def _show_chat():
-    """채팅 모드 화면"""
+    """직접 질문 화면"""
     p   = st.session_state.profile
     age = p.get("age", 65)
 
@@ -965,7 +965,7 @@ def main():
         if st.session_state.ui_mode is not None:
             ui_mode = st.radio(
                 "화면 방식",
-                ["버튼 모드", "채팅 모드"],
+                ["버튼 모드", "직접 질문"],
                 index=0 if st.session_state.ui_mode == "버튼 모드" else 1,
                 label_visibility="collapsed",
             )
@@ -1007,7 +1007,7 @@ def main():
 
     if st.session_state.ui_mode is None:
         _show_mode_select()
-    elif st.session_state.ui_mode == "채팅 모드":
+    elif st.session_state.ui_mode == "직접 질문":
         if st.session_state.step < len(ONBOARDING):
             _show_onboarding()
         else:
