@@ -12,6 +12,6 @@ plotly
 openpyxl
 xlrd
 python-dotenv
-openai
+openai>=1.0.0,<2.0.0
 requests
 matplotlib
