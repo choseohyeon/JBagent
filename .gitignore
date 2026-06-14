@@ -6,3 +6,8 @@ venv/
 필요한 파일/
 *.xls
 *.xlsx
+!data/raw/*.xls
+!data/raw/*.xlsx
+!data/raw/**/*.xls
+!data/raw/**/*.xlsx
+.streamlit/secrets.toml

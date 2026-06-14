@@ -14,9 +14,17 @@ from agent.prompts import get_system_prompt
 
 load_dotenv()
 
+def _get_api_key() -> str:
+    # Streamlit Cloud secrets 우선, 없으면 .env 사용
+    try:
+        import streamlit as st
+        return st.secrets["GROQ_API_KEY"]
+    except Exception:
+        return os.getenv("GROQ_API_KEY", "")
+
 client = OpenAI(
     base_url="https://api.groq.com/openai/v1",
-    api_key=os.getenv("GROQ_API_KEY", ""),
+    api_key=_get_api_key(),
 )
 
 MODEL = "llama-3.1-8b-instant"
