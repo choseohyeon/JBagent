@@ -464,13 +464,36 @@ def _show_onboarding():
     step = st.session_state.step
     key, question, unit = ONBOARDING[step]
 
-    # ── 진행 상태 (상단) ──────────────────────────────────────────────────────
-    st.progress((step) / len(ONBOARDING))
-    st.markdown(
-        f"<div style='text-align:right; font-size:13px; color:#7A8FA6; margin:-6px 0 16px;'>"
-        f"{step + 1} / {len(ONBOARDING)} 단계</div>",
-        unsafe_allow_html=True,
-    )
+    # ── 진행 상태 (스텝 도트) ─────────────────────────────────────────────────
+    step_labels = ["나이", "소득", "자산", "지출", "연금", "수령"]
+    dots_html = "<div style='display:flex; justify-content:center; gap:20px; margin:8px 0 20px;'>"
+    for i, label in enumerate(step_labels):
+        if i < step:
+            dot_color = "#1B4F8A"
+            dot_border = "#1B4F8A"
+            label_color = "#1B4F8A"
+            dot_inner = f"<div style='width:16px;height:16px;border-radius:50%;background:{dot_color};'></div>"
+        elif i == step:
+            dot_color = "#1B4F8A"
+            dot_border = "#1B4F8A"
+            label_color = "#1B4F8A"
+            dot_inner = (
+                f"<div style='width:20px;height:20px;border-radius:50%;background:{dot_color};"
+                f"box-shadow:0 0 0 3px #BDD5F7;'></div>"
+            )
+        else:
+            dot_color = "transparent"
+            dot_border = "#C5D3E0"
+            label_color = "#B0BEC5"
+            dot_inner = f"<div style='width:16px;height:16px;border-radius:50%;border:2px solid {dot_border};'></div>"
+        dots_html += (
+            f"<div style='display:flex;flex-direction:column;align-items:center;gap:5px;'>"
+            f"{dot_inner}"
+            f"<span style='font-size:11px;color:{label_color};font-weight:{'600' if i <= step else '400'};'>{label}</span>"
+            f"</div>"
+        )
+    dots_html += "</div>"
+    st.markdown(dots_html, unsafe_allow_html=True)
 
     st.markdown(f"### {question}")
 
