@@ -15,7 +15,7 @@ import streamlit as st
 import plotly.graph_objects as go
 from agent.agent import run_agent
 
-st.set_page_config(page_title="LifeLong WM", layout="centered")
+st.set_page_config(page_title="평생 자산관리", layout="centered")
 
 # ── 온보딩 질문 ───────────────────────────────────────────────────────────────
 
@@ -959,7 +959,7 @@ def main():
     _apply_css(age)
 
     with st.sidebar:
-        st.markdown("**LifeLong WM**")
+        st.markdown("**평생 자산관리**")
         st.divider()
 
         if st.session_state.ui_mode is not None:
@@ -999,7 +999,7 @@ def main():
 
     st.markdown("""
     <div class="app-header">
-        <div class="app-header-title">LifeLong WM</div>
+        <div class="app-header-title">평생 자산관리</div>
         <div class="app-header-sub">통계가 계산하고, AI가 쉽게 전달합니다</div>
     </div>
     <hr style='border-color:#E8EEF8; margin:0 0 20px;'>
