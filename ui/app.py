@@ -912,8 +912,16 @@ def main():
             st.rerun()
 
         st.divider()
-        segment = "후기 고령층" if age >= 75 else "초기 고령층" if age >= 65 else "은퇴 준비층"
-        st.caption(segment)
+        if age >= 75:
+            segment = "후기 고령층"
+        elif age >= 65:
+            segment = "초기 고령층"
+        elif age >= 50:
+            segment = "은퇴 준비층"
+        else:
+            segment = None
+        if segment:
+            st.caption(segment)
 
     st.markdown("""
     <div style='text-align:center; padding:18px 0 8px;'>
