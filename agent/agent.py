@@ -6,6 +6,7 @@ Agent 메인 루프 - Groq API (llama-3.3-70b-versatile)
 
 import os
 import sys
+import time
 import json
 import re
 from openai import OpenAI
@@ -69,29 +70,35 @@ def run_agent(user_message: str, conversation_history: list, age: int = 65) -> t
     tool_results: list[tuple[str, dict]] = []
 
     for _ in range(5):
-        try:
-            response = client.chat.completions.create(
-                model=MODEL,
-                messages=[{"role": "system", "content": system_prompt}] + history,
-                tools=openai_tools,
-                tool_choice="auto",
-            )
-        except Exception as e:
-            err = str(e)
-            _log(f"[Agent API error] {type(e).__name__}: {err}")
-            if "rate_limit" in err.lower() or "429" in err or "too many" in err.lower():
-                import re as _re
-                wait = _re.search(r'in (\d+m\d+)', err)
-                wait_str = wait.group(1) if wait else "잠시"
-                reply = f"요청이 너무 많아 잠시 후 다시 시도해 주세요. ({wait_str} 후 이용 가능합니다)"
-            elif "401" in err or "authentication" in err.lower() or "invalid api key" in err.lower():
-                reply = "API 키 오류가 발생했습니다. 서비스 관리자에게 문의해 주세요."
-            elif "404" in err or "model" in err.lower() and "not found" in err.lower():
-                reply = "AI 모델을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."
-            else:
-                reply = f"일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."
-            history.append({"role": "assistant", "content": reply})
-            return reply, history
+        response = None
+        for attempt in range(3):
+            try:
+                response = client.chat.completions.create(
+                    model=MODEL,
+                    messages=[{"role": "system", "content": system_prompt}] + history,
+                    tools=openai_tools,
+                    tool_choice="auto",
+                )
+                break
+            except Exception as e:
+                err = str(e)
+                _log(f"[Agent API error] attempt={attempt} {type(e).__name__}: {err}")
+                is_rate = "rate_limit" in err.lower() or "429" in err or "too many" in err.lower()
+                if is_rate and attempt < 2:
+                    time.sleep(2 ** attempt + 1)
+                    continue
+                if is_rate:
+                    reply = "요청이 잠시 몰렸습니다. 3초 후 다시 눌러주세요."
+                elif "401" in err or "authentication" in err.lower() or "invalid api key" in err.lower():
+                    reply = "API 키 오류가 발생했습니다. 서비스 관리자에게 문의해 주세요."
+                elif "404" in err or ("model" in err.lower() and "not found" in err.lower()):
+                    reply = "AI 모델을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."
+                else:
+                    reply = "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."
+                history.append({"role": "assistant", "content": reply})
+                return reply, history
+        if response is None:
+            break
 
         message = response.choices[0].message
 
