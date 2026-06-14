@@ -153,16 +153,12 @@ def _apply_css(age: int = 65):
         /* ── 모드 선택 카드 ── */
         .mode-card {{
             border: 1.5px solid #D5E3F5;
-            border-radius: 8px 8px 0 0;
+            border-radius: 8px;
             padding: 22px 18px 16px;
             background: #FFFFFF;
             box-shadow: 0 2px 10px rgba(27,79,138,0.06);
             text-align: center;
-            margin-bottom: 0;
-        }}
-        .mode-card + div button, .mode-card + .btn-primary button {{
-            border-radius: 0 0 8px 8px !important;
-            border-top: none !important;
+            margin-bottom: 8px;
         }}
 
         /* ── 메인 메뉴 버튼 2×2 ── */
