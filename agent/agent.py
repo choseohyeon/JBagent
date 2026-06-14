@@ -19,7 +19,7 @@ client = OpenAI(
     api_key=os.getenv("GROQ_API_KEY", ""),
 )
 
-MODEL = "llama-3.3-70b-versatile"
+MODEL = "llama-3.1-8b-instant"
 
 _OUT_OF_SCOPE_KEYWORDS = [
     "대출", "보험", "세금", "세무", "부동산", "주식 추천", "코인", "암호화폐",
