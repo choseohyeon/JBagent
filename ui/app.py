@@ -150,29 +150,19 @@ def _apply_css(age: int = 65):
             box-shadow: 0 3px 10px rgba(27,79,138,0.12) !important;
         }}
 
-        /* ── 모드 선택 카드 (클릭 가능한 전체 영역) ── */
-        .mode-card button {{
-            height: 120px !important;
-            white-space: pre-wrap !important;
-            line-height: 1.8 !important;
-            font-size: {size} !important;
-            font-weight: 600 !important;
-            background: #FFFFFF !important;
-            border: 1.5px solid #D5E3F5 !important;
-            color: #1A2744 !important;
-            border-radius: 16px !important;
-            box-shadow: 0 2px 10px rgba(27,79,138,0.06) !important;
+        /* ── 모드 선택 카드 ── */
+        .mode-card {{
+            border: 1.5px solid #D5E3F5;
+            border-radius: 16px 16px 0 0;
+            padding: 22px 18px 16px;
+            background: #FFFFFF;
+            box-shadow: 0 2px 10px rgba(27,79,138,0.06);
+            text-align: center;
+            margin-bottom: 0;
         }}
-        .mode-card button:hover {{
-            background: #F0F6FF !important;
-            border-color: #1B4F8A !important;
-            color: #1B4F8A !important;
-            box-shadow: 0 4px 16px rgba(27,79,138,0.13) !important;
-        }}
-        .mode-card-active button {{
-            background: #EBF3FF !important;
-            border-color: #1B4F8A !important;
-            color: #1B4F8A !important;
+        .mode-card + div button, .mode-card + .btn-primary button {{
+            border-radius: 0 0 16px 16px !important;
+            border-top: none !important;
         }}
 
         /* ── 메인 메뉴 버튼 2×2 ── */
@@ -464,15 +454,27 @@ def _show_mode_select():
 
     col1, col2 = st.columns(2, gap="medium")
     with col1:
-        st.markdown('<div class="mode-card">', unsafe_allow_html=True)
-        if st.button("버튼 모드\n\n준비된 항목 중에서\n골라 확인하는 방식", key="select_btn", use_container_width=True):
+        st.markdown("""
+        <div class="mode-card">
+            <div style='font-size:20px; font-weight:700; color:#1B4F8A; margin-bottom:8px;'>버튼 모드</div>
+            <div style='font-size:13px; color:#8FA3BE; line-height:1.7;'>준비된 항목 중에서<br>골라 확인하는 방식</div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown('<div class="btn-primary">', unsafe_allow_html=True)
+        if st.button("선택하기", key="select_btn", use_container_width=True):
             st.session_state.ui_mode = "버튼 모드"
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
-        st.markdown('<div class="mode-card">', unsafe_allow_html=True)
-        if st.button("채팅 모드\n\n궁금한 것을\n자유롭게 대화하는 방식", key="select_chat", use_container_width=True):
+        st.markdown("""
+        <div class="mode-card">
+            <div style='font-size:20px; font-weight:700; color:#1B4F8A; margin-bottom:8px;'>채팅 모드</div>
+            <div style='font-size:13px; color:#8FA3BE; line-height:1.7;'>궁금한 것을<br>자유롭게 대화하는 방식</div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown('<div style="margin-top:0;">', unsafe_allow_html=True)
+        if st.button("선택하기", key="select_chat", use_container_width=True):
             st.session_state.ui_mode = "채팅 모드"
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
