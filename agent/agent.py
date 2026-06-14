@@ -5,12 +5,16 @@ Agent 메인 루프 - Groq API (llama-3.3-70b-versatile)
 """
 
 import os
+import sys
 import json
 import re
 from openai import OpenAI
 from dotenv import load_dotenv
 from agent.tools import TOOLS, call_tool
 from agent.prompts import get_system_prompt
+
+def _log(msg: str):
+    print(msg, file=sys.stderr, flush=True)
 
 load_dotenv()
 
@@ -74,7 +78,7 @@ def run_agent(user_message: str, conversation_history: list, age: int = 65) -> t
             )
         except Exception as e:
             err = str(e)
-            print(f"[Agent API error] {type(e).__name__}: {err}")
+            _log(f"[Agent API error] {type(e).__name__}: {err}")
             if "rate_limit" in err.lower() or "429" in err or "too many" in err.lower():
                 import re as _re
                 wait = _re.search(r'in (\d+m\d+)', err)
@@ -140,7 +144,7 @@ def _korean_short_reply(user_message: str, age: int) -> str:
         )
         return _clean_tool_names(response.choices[0].message.content or "")
     except Exception as e:
-        print(f"[Korean short reply error] {type(e).__name__}: {e}")
+        _log(f"[Korean short reply error] {type(e).__name__}: {e}")
         return "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."
 
 
@@ -171,7 +175,7 @@ def _korean_reply(user_message: str, tool_results: list[tuple[str, dict]], age: 
         )
         return _clean_tool_names(response.choices[0].message.content or "")
     except Exception as e:
-        print(f"[Korean reply error] {type(e).__name__}: {e}")
+        _log(f"[Korean reply error] {type(e).__name__}: {e}")
         return "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."
 
 
@@ -196,7 +200,7 @@ def handle_tool_call(tool_name: str, tool_input: dict) -> dict:
     try:
         return call_tool(tool_name, tool_input)
     except Exception as e:
-        print(f"[Tool error] {tool_name}({tool_input}): {type(e).__name__}: {e}")
+        _log(f"[Tool error] {tool_name}({tool_input}): {type(e).__name__}: {e}")
         return {"error": str(e)}
 
 
