@@ -393,7 +393,6 @@ def _show_mode_select():
     with col1:
         st.markdown("""
         <div class="mode-card">
-            <div style='font-size:36px; margin-bottom:12px;'>🖱️</div>
             <div style='font-size:17px; font-weight:700; color:#1B4F8A; margin-bottom:8px;'>버튼 모드</div>
             <div style='font-size:14px; color:#7A8FA6; line-height:1.7;'>준비된 항목 중에서<br>골라 확인하는 방식</div>
         </div>
@@ -407,7 +406,6 @@ def _show_mode_select():
     with col2:
         st.markdown("""
         <div class="mode-card">
-            <div style='font-size:36px; margin-bottom:12px;'>💬</div>
             <div style='font-size:17px; font-weight:700; color:#1B4F8A; margin-bottom:8px;'>채팅 모드</div>
             <div style='font-size:14px; color:#7A8FA6; line-height:1.7;'>궁금한 것을<br>자유롭게 대화하는 방식</div>
         </div>
@@ -430,20 +428,19 @@ def _show_feature_select():
     )
 
     features = [
-        ("📊", "내 자산 얼마나\n버티나요?",      "Monte Carlo 10,000회\n자산 수명·고갈 확률 계산"),
-        ("🏦", "연금 언제 받는 게\n좋을까요?",    "수령 시기별 총 수령액\n손익분기 연령 비교"),
-        ("👥", "또래랑\n비교해주세요",             "비슷한 처지 가구 대비\n내 자산 순위"),
-        ("✂️", "지출 줄이면\n어떻게 되나요?",     "지출 20% 절감 시\n자산 수명 재시뮬레이션"),
+        ("내 자산 얼마나\n버티나요?",      "Monte Carlo 10,000회\n자산 수명·고갈 확률 계산"),
+        ("연금 언제 받는 게\n좋을까요?",    "수령 시기별 총 수령액\n손익분기 연령 비교"),
+        ("또래랑\n비교해주세요",             "비슷한 처지 가구 대비\n내 자산 순위"),
+        ("지출 줄이면\n어떻게 되나요?",     "지출 20% 절감 시\n자산 수명 재시뮬레이션"),
     ]
 
     col1, col2 = st.columns(2, gap="medium")
     cols = [col1, col2, col1, col2]
-    for i, (icon, title, desc) in enumerate(features):
+    for i, (title, desc) in enumerate(features):
         with cols[i]:
-            # 아이콘 + 설명 헤더
+            # 설명 헤더
             st.markdown(f"""
             <div class="feature-header">
-                <div class="feature-header-icon">{icon}</div>
                 <div class="feature-header-desc">{desc.replace(chr(10), '<br>')}</div>
             </div>
             """, unsafe_allow_html=True)
@@ -556,16 +553,16 @@ def _show_main():
         st.rerun()
 
     # ── 프로필 요약 카드 ──────────────────────────────────────────────────────
-    income_line = f"<span style='margin-right:20px;'>💼 월 소득 {income_disp}</span>" if income > 0 or "monthly_income" in lbl else ""
+    income_line = f"<span style='margin-right:24px;'>월 소득 {income_disp}</span>" if income > 0 or "monthly_income" in lbl else ""
     st.markdown(f"""
     <div class="profile-card">
         <div style='font-size:17px; font-weight:700; color:#1A2744; margin-bottom:6px;'>
-            👤 {age}세 &nbsp;·&nbsp; 💰 자산 {assets_disp}
+            {age}세 &nbsp;·&nbsp; 자산 {assets_disp}
         </div>
         <div style='font-size:14px; color:#5A6A80; display:flex; flex-wrap:wrap; gap:4px 0;'>
             {income_line}
-            <span style='margin-right:20px;'>🛒 월 지출 {expense_disp}</span>
-            <span>🏦 월 연금 {pension_disp}</span>
+            <span style='margin-right:24px;'>월 지출 {expense_disp}</span>
+            <span>월 연금 {pension_disp}</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -636,13 +633,13 @@ def _show_main():
             st.markdown(f"""
             <div style='border-left:4px solid #C0392B; padding:10px 16px; margin:12px 0 16px;
                         background:#FFF5F5; border-radius:0 8px 8px 0;'>
-                <span style='color:#C0392B; font-weight:700;'>⚠️ 자산 고갈 확률 {depletion_pct}%</span>
+                <span style='color:#C0392B; font-weight:700;'>자산 고갈 확률 {depletion_pct}%</span>
                 <span style='color:#666; font-size:14px;'> — 아래 방법으로 개선해 보세요.</span>
             </div>
             """, unsafe_allow_html=True)
             col1, col2, col3 = st.columns(3, gap="small")
             with col1:
-                if st.button("✂️ 지출 20% 줄이면?", key="advice_expense", use_container_width=True):
+                if st.button("지출 20% 줄이면?", key="advice_expense", use_container_width=True):
                     expense_reduced = p.get("monthly_expense", 0) * 0.8
                     new_p = dict(p)
                     new_p["monthly_expense"] = expense_reduced
@@ -655,7 +652,7 @@ def _show_main():
                     st.session_state.pension_result = None
                     st.rerun()
             with col2:
-                if st.button("💼 소득 기간 늘리면?", key="advice_income", use_container_width=True):
+                if st.button("소득 기간 늘리면?", key="advice_income", use_container_width=True):
                     st.session_state.pending_question = _inject_profile(
                         "근로소득을 65세까지 유지하면 자산 고갈 확률이 어떻게 달라지나요? income_until_age=65로 재계산해주세요."
                     )
@@ -664,7 +661,7 @@ def _show_main():
                     st.session_state.pension_result = None
                     st.rerun()
             with col3:
-                if st.button("📈 자산 배분 바꾸면?", key="advice_portfolio", use_container_width=True):
+                if st.button("자산 배분 바꾸면?", key="advice_portfolio", use_container_width=True):
                     st.session_state.pending_question = _inject_profile(
                         "현재 상황에서 자산 배분을 최적화하면 위험을 얼마나 줄일 수 있나요? 보수적 포트폴리오로 계산해주세요."
                     )
@@ -675,7 +672,7 @@ def _show_main():
 
     # ── 이상 거래 탐지 폼 ─────────────────────────────────────────────────────
     st.markdown("---")
-    with st.expander("🔍 이상 거래 탐지 — 거래 정보 직접 입력"):
+    with st.expander("이상 거래 탐지 — 거래 정보 직접 입력"):
         st.caption("보이스피싱·이상 이체 여부를 분석합니다. 의심스러운 거래 정보를 입력해주세요.")
         col_a, col_b = st.columns(2)
         with col_a:
@@ -695,7 +692,7 @@ def _show_main():
                 score = res['score']
                 level = res['level']
                 color = "#C0392B" if level == "high" else "#E67E22" if level == "medium" else "#27AE60"
-                badge = "⚠️ 위험" if level == "high" else "🔶 주의" if level == "medium" else "✅ 정상"
+                badge = "위험" if level == "high" else "주의" if level == "medium" else "정상"
                 st.markdown(f"""
                 <div style='border:2px solid {color}; border-radius:12px; padding:20px 24px; margin:12px 0; background:#FAFBFF;'>
                     <div style='display:flex; align-items:center; gap:16px;'>
@@ -751,7 +748,7 @@ def _show_chat():
 
     # 대화 기록 표시
     for idx, msg in enumerate(st.session_state.chat_messages):
-        with st.chat_message(msg["role"], avatar="🧓" if msg["role"] == "user" else "🤖"):
+        with st.chat_message(msg["role"]):
             if msg.get("chart") == "fan" and msg.get("sim"):
                 st.plotly_chart(_fan_chart(p, msg["sim"]), use_container_width=True, key=f"chat_fan_{idx}")
             elif msg.get("chart") == "pension" and msg.get("pension"):
@@ -769,10 +766,10 @@ def _show_chat():
         full_q = _inject_profile(user_input)
         st.session_state.chat_messages.append({"role": "user", "content": user_input})
 
-        with st.chat_message("user", avatar="🧓"):
+        with st.chat_message("user"):
             st.markdown(user_input)
 
-        with st.chat_message("assistant", avatar="🤖"):
+        with st.chat_message("assistant"):
             with st.spinner("계산 중..."):
                 prev_len = len(st.session_state.conv_history)
                 reply, updated = run_agent(full_q, st.session_state.conv_history, age=age)
