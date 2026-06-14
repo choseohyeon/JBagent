@@ -11,3 +11,7 @@ venv/
 !data/raw/**/*.xls
 !data/raw/**/*.xlsx
 .streamlit/secrets.toml
+data/raw/*API*.txt
+data/raw/*키*.txt
+.DS_Store
+.claude/
