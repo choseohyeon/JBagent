@@ -110,11 +110,29 @@ def _apply_css(age: int = 65):
     size = "20px" if age >= 75 else "18px" if age >= 65 else "16px"
     st.markdown(f"""
     <style>
-        .main .block-container {{ max-width: 560px; padding-top: 1.2rem; }}
+        .main .block-container {{ max-width: 560px; padding-top: 0.6rem; }}
         p, li, .stMarkdown {{ font-size: {size} !important; line-height: 1.8; color: #1A2744; }}
         div[data-testid="stChatMessage"] {{ font-size: {size} !important; }}
 
-        /* 기본 버튼 */
+        /* ── 서비스 헤더 ── */
+        .app-header {{
+            text-align: center;
+            padding: 28px 0 20px;
+            margin-bottom: 8px;
+        }}
+        .app-header-title {{
+            font-size: 26px;
+            font-weight: 800;
+            color: #1B4F8A;
+            letter-spacing: -0.5px;
+        }}
+        .app-header-sub {{
+            font-size: 13px;
+            color: #8FA3BE;
+            margin-top: 4px;
+        }}
+
+        /* ── 기본 버튼 ── */
         .stButton > button {{
             font-size: {size} !important;
             border-radius: 10px !important;
@@ -122,19 +140,44 @@ def _apply_css(age: int = 65):
             background: #FFFFFF !important;
             color: #1A2744 !important;
             font-weight: 500 !important;
-            transition: all 0.18s ease !important;
-            box-shadow: 0 1px 4px rgba(27,79,138,0.07) !important;
+            transition: all 0.15s ease !important;
+            box-shadow: 0 1px 3px rgba(27,79,138,0.06) !important;
         }}
         .stButton > button:hover {{
             border-color: #1B4F8A !important;
             color: #1B4F8A !important;
             background: #F0F6FF !important;
-            box-shadow: 0 3px 12px rgba(27,79,138,0.13) !important;
+            box-shadow: 0 3px 10px rgba(27,79,138,0.12) !important;
         }}
 
-        /* 메인 메뉴 버튼 — 2×2 그리드, 높이 고정 */
+        /* ── 모드 선택 카드 (클릭 가능한 전체 영역) ── */
+        .mode-card button {{
+            height: 120px !important;
+            white-space: pre-wrap !important;
+            line-height: 1.8 !important;
+            font-size: {size} !important;
+            font-weight: 600 !important;
+            background: #FFFFFF !important;
+            border: 1.5px solid #D5E3F5 !important;
+            color: #1A2744 !important;
+            border-radius: 16px !important;
+            box-shadow: 0 2px 10px rgba(27,79,138,0.06) !important;
+        }}
+        .mode-card button:hover {{
+            background: #F0F6FF !important;
+            border-color: #1B4F8A !important;
+            color: #1B4F8A !important;
+            box-shadow: 0 4px 16px rgba(27,79,138,0.13) !important;
+        }}
+        .mode-card-active button {{
+            background: #EBF3FF !important;
+            border-color: #1B4F8A !important;
+            color: #1B4F8A !important;
+        }}
+
+        /* ── 메인 메뉴 버튼 2×2 ── */
         .menu-btn button {{
-            height: 110px !important;
+            height: 100px !important;
             white-space: pre-wrap !important;
             line-height: 1.7 !important;
             font-size: {size} !important;
@@ -150,70 +193,64 @@ def _apply_css(age: int = 65):
             color: #1B4F8A !important;
             box-shadow: 0 4px 14px rgba(27,79,138,0.13) !important;
         }}
+        .menu-btn-active button {{
+            background: #1B4F8A !important;
+            color: #FFFFFF !important;
+            border-color: #1B4F8A !important;
+        }}
 
-        /* 프라이머리 버튼 */
+        /* ── 기능 선택 카드 ── */
+        .feature-card button {{
+            height: 90px !important;
+            white-space: pre-wrap !important;
+            line-height: 1.65 !important;
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            background: #F7FAFF !important;
+            border: 1.5px solid #D5E3F5 !important;
+            color: #1B4F8A !important;
+            border-radius: 14px !important;
+            text-align: left !important;
+            padding: 14px 16px !important;
+        }}
+        .feature-card button:hover {{
+            background: #E4EFFF !important;
+            border-color: #1B4F8A !important;
+            box-shadow: 0 4px 14px rgba(27,79,138,0.13) !important;
+        }}
+        .feature-desc {{
+            font-size: 11px;
+            color: #8FA3BE;
+            margin: 3px 0 8px 1px;
+            line-height: 1.5;
+        }}
+
+        /* ── 프라이머리 버튼 ── */
         .btn-primary button {{
             background: #1B4F8A !important;
             color: #FFFFFF !important;
             border-color: #1B4F8A !important;
             font-weight: 600 !important;
-            box-shadow: 0 2px 8px rgba(27,79,138,0.25) !important;
+            box-shadow: 0 2px 8px rgba(27,79,138,0.22) !important;
             border-radius: 10px !important;
         }}
         .btn-primary button:hover {{
             background: #163F70 !important;
-            box-shadow: 0 4px 14px rgba(27,79,138,0.35) !important;
+            box-shadow: 0 4px 14px rgba(27,79,138,0.32) !important;
         }}
         .btn-secondary button {{
             border-radius: 10px !important;
             font-weight: 500 !important;
+            color: #5A6A80 !important;
         }}
 
-        /* 모드 선택 카드 */
-        .mode-card {{
-            border: 1.5px solid #D5E3F5;
-            border-radius: 16px;
-            padding: 28px 22px 16px;
-            background: #FFFFFF;
-            box-shadow: 0 2px 10px rgba(27,79,138,0.06);
-            margin-bottom: 10px;
-            text-align: center;
-        }}
-
-        /* 기능 선택 카드 (2×2 그리드) */
-        .feature-header {{
-            border: 1.5px solid #E2EAF6;
-            border-radius: 14px 14px 0 0;
-            padding: 18px 16px 10px;
-            background: #F7FAFF;
-            text-align: center;
-        }}
-        .feature-header-icon {{ font-size: 28px; margin-bottom: 6px; }}
-        .feature-header-desc {{ font-size: 12px; color: #7A8FA6; line-height: 1.5; margin-top: 4px; }}
-
-        /* 기능 버튼 — 카드 하단에 붙임 */
-        .feature-btn button {{
-            border-radius: 0 0 14px 14px !important;
-            border: 1.5px solid #C8D8F0 !important;
-            border-top: none !important;
-            background: #FFFFFF !important;
-            color: #1B4F8A !important;
-            font-weight: 600 !important;
-            font-size: 15px !important;
-            padding: 10px !important;
-        }}
-        .feature-btn button:hover {{
-            background: #E4EFFF !important;
-            color: #1B4F8A !important;
-        }}
-
-        /* 구간 선택 버튼 */
+        /* ── 구간 선택 버튼 ── */
         .range-btn button {{
             border-radius: 8px !important;
             border: 1.5px solid #D5E0EF !important;
             background: #F7FAFF !important;
             color: #1A2744 !important;
-            font-size: 15px !important;
+            font-size: 14px !important;
             font-weight: 500 !important;
             padding: 10px 6px !important;
         }}
@@ -223,15 +260,43 @@ def _apply_css(age: int = 65):
             color: #1B4F8A !important;
         }}
 
-        /* 프로필 요약 카드 */
+        /* ── 프로필 카드 ── */
         .profile-card {{
             border: 1.5px solid #E2EAF6;
             border-radius: 12px;
             padding: 14px 20px;
             background: #F7FAFF;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }}
 
+        /* ── 결과 카드 ── */
+        .result-card {{
+            background: #F7FAFF;
+            border: 1.5px solid #E2EAF6;
+            border-radius: 14px;
+            padding: 20px 24px;
+            margin: 14px 0;
+            line-height: 1.9;
+            font-size: {size};
+            color: #1A2744;
+        }}
+
+        /* ── 개선 방안 버튼 (소형) ── */
+        .advice-btn button {{
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            color: #1B4F8A !important;
+            background: #EBF3FF !important;
+            border: 1.5px solid #C0D4EE !important;
+            border-radius: 8px !important;
+            padding: 6px 10px !important;
+        }}
+        .advice-btn button:hover {{
+            background: #D6E8FF !important;
+            border-color: #1B4F8A !important;
+        }}
+
+        /* ── 입력창 ── */
         .stTextInput {{
             max-width: 320px !important;
             margin: 0 auto !important;
@@ -245,17 +310,17 @@ def _apply_css(age: int = 65):
             color: #1A2744 !important;
             text-align: center !important;
         }}
-        .stProgress > div > div {{ background: #1B4F8A; border-radius: 4px; }}
+
         hr {{ border-color: #E8EFF8; margin: 1.2rem 0; }}
 
-        /* 사이드바 */
+        /* ── 사이드바 ── */
         section[data-testid="stSidebar"] {{
             background: #FFFFFF;
             border-right: 1px solid #E2EAF6;
         }}
 
-        /* 컬럼 간격 */
-        div[data-testid="column"] {{ padding: 0 6px !important; }}
+        /* ── 컬럼 간격 ── */
+        div[data-testid="column"] {{ padding: 0 5px !important; }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -392,35 +457,22 @@ def _pension_chart(pension_data: dict, base_monthly: float) -> go.Figure:
 
 def _show_mode_select():
     st.markdown(
-        "<div style='text-align:center; margin-bottom:28px;'>"
-        "<span style='font-size:22px; font-weight:700; color:#1B4F8A;'>어떻게 이용하실래요?</span>"
-        "</div>",
+        "<div style='text-align:center; margin-bottom:24px; color:#8FA3BE; font-size:14px;'>"
+        "이용 방식을 선택해 주세요</div>",
         unsafe_allow_html=True,
     )
 
     col1, col2 = st.columns(2, gap="medium")
     with col1:
-        st.markdown("""
-        <div class="mode-card">
-            <div style='font-size:17px; font-weight:700; color:#1B4F8A; margin-bottom:8px;'>버튼 모드</div>
-            <div style='font-size:14px; color:#7A8FA6; line-height:1.7;'>준비된 항목 중에서<br>골라 확인하는 방식</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown('<div class="btn-primary" style="margin-top:8px;">', unsafe_allow_html=True)
-        if st.button("버튼 모드로 시작 →", key="select_btn", use_container_width=True):
+        st.markdown('<div class="mode-card">', unsafe_allow_html=True)
+        if st.button("버튼 모드\n\n준비된 항목 중에서\n골라 확인하는 방식", key="select_btn", use_container_width=True):
             st.session_state.ui_mode = "버튼 모드"
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
-        st.markdown("""
-        <div class="mode-card">
-            <div style='font-size:17px; font-weight:700; color:#1B4F8A; margin-bottom:8px;'>채팅 모드</div>
-            <div style='font-size:14px; color:#7A8FA6; line-height:1.7;'>궁금한 것을<br>자유롭게 대화하는 방식</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown('<div style="margin-top:8px;">', unsafe_allow_html=True)
-        if st.button("채팅 모드로 시작 →", key="select_chat", use_container_width=True):
+        st.markdown('<div class="mode-card">', unsafe_allow_html=True)
+        if st.button("채팅 모드\n\n궁금한 것을\n자유롭게 대화하는 방식", key="select_chat", use_container_width=True):
             st.session_state.ui_mode = "채팅 모드"
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
@@ -430,37 +482,30 @@ def _show_mode_select():
 
 def _show_feature_select():
     st.markdown(
-        "<div style='text-align:center; margin-bottom:24px;'>"
-        "<span style='font-size:22px; font-weight:700; color:#1B4F8A;'>무엇이 궁금하세요?</span>"
-        "</div>",
+        "<div style='text-align:center; margin-bottom:24px; color:#8FA3BE; font-size:14px;'>"
+        "원하는 기능을 선택해 주세요</div>",
         unsafe_allow_html=True,
     )
 
     features = [
-        ("내 자산 얼마나\n버티나요?",      "다양한 미래 상황을 따져\n자산 고갈 위험 확인"),
-        ("연금 언제 받는 게\n좋을까요?",    "일찍 vs 늦게 받을 때\n총 수령액 비교"),
-        ("또래랑\n비교해주세요",             "비슷한 처지 가구 대비\n내 자산 순위"),
-        ("지출 줄이면\n어떻게 되나요?",     "지출 20% 아끼면\n자산이 얼마나 더 버티나"),
+        ("내 자산 얼마나 버티나요?",    "다양한 미래 상황을 따져 자산 고갈 위험 확인"),
+        ("연금 언제 받는 게 좋을까요?", "일찍 vs 늦게 받을 때 총 수령액 비교"),
+        ("또래랑 비교해주세요",          "비슷한 처지 가구 대비 내 자산 순위"),
+        ("지출 줄이면 어떻게 되나요?",  "지출 20% 아끼면 자산이 얼마나 더 버티나"),
     ]
 
     col1, col2 = st.columns(2, gap="medium")
     cols = [col1, col2, col1, col2]
     for i, (title, desc) in enumerate(features):
         with cols[i]:
-            # 설명 헤더
-            st.markdown(f"""
-            <div class="feature-header">
-                <div class="feature-header-desc">{desc.replace(chr(10), '<br>')}</div>
-            </div>
-            """, unsafe_allow_html=True)
-            # 제목이 버튼 텍스트 — 헤더에 맞닿도록
-            st.markdown('<div class="feature-btn">', unsafe_allow_html=True)
+            st.markdown(f'<div class="feature-desc">{desc}</div>', unsafe_allow_html=True)
+            st.markdown('<div class="feature-card">', unsafe_allow_html=True)
             if st.button(title, key=f"feat_{i}", use_container_width=True):
                 st.session_state.selected_feature = i
                 st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
         if i == 1:
-            st.markdown('<div style="height:16px;"></div>', unsafe_allow_html=True)
+            st.markdown('<div style="height:12px;"></div>', unsafe_allow_html=True)
 
 
 # ── 온보딩 ────────────────────────────────────────────────────────────────────
@@ -654,9 +699,7 @@ def _show_main():
 
         # 결과 카드
         st.markdown(
-            f"<div style='background:#F7FAFF; border:1.5px solid #E2EAF6; border-radius:12px;"
-            f"padding:18px 22px; margin:16px 0; line-height:1.9;'>"
-            f"{st.session_state.result_text}</div>",
+            f"<div class='result-card'>{st.session_state.result_text}</div>",
             unsafe_allow_html=True,
         )
 
@@ -673,6 +716,7 @@ def _show_main():
             """, unsafe_allow_html=True)
             col1, col2, col3 = st.columns(3, gap="small")
             with col1:
+                st.markdown('<div class="advice-btn">', unsafe_allow_html=True)
                 if st.button("지출 20% 줄이면?", key="advice_expense", use_container_width=True):
                     expense_reduced = p.get("monthly_expense", 0) * 0.8
                     new_p = dict(p)
@@ -685,7 +729,9 @@ def _show_main():
                     st.session_state.sim_result = None
                     st.session_state.pension_result = None
                     st.rerun()
+                st.markdown('</div>', unsafe_allow_html=True)
             with col2:
+                st.markdown('<div class="advice-btn">', unsafe_allow_html=True)
                 if st.button("소득 기간 늘리면?", key="advice_income", use_container_width=True):
                     st.session_state.pending_question = _inject_profile(
                         "근로소득을 65세까지 유지하면 자산 고갈 확률이 어떻게 달라지나요? income_until_age=65로 재계산해주세요."
@@ -694,7 +740,9 @@ def _show_main():
                     st.session_state.sim_result = None
                     st.session_state.pension_result = None
                     st.rerun()
+                st.markdown('</div>', unsafe_allow_html=True)
             with col3:
+                st.markdown('<div class="advice-btn">', unsafe_allow_html=True)
                 if st.button("자산 배분 바꾸면?", key="advice_portfolio", use_container_width=True):
                     st.session_state.pending_question = _inject_profile(
                         "현재 상황에서 자산 배분을 최적화하면 위험을 얼마나 줄일 수 있나요? 보수적 포트폴리오로 계산해주세요."
@@ -703,6 +751,7 @@ def _show_main():
                     st.session_state.sim_result = None
                     st.session_state.pension_result = None
                     st.rerun()
+                st.markdown('</div>', unsafe_allow_html=True)
 
     # ── 이상 거래 탐지 폼 ─────────────────────────────────────────────────────
     st.markdown("---")
@@ -947,11 +996,11 @@ def main():
             st.caption(segment)
 
     st.markdown("""
-    <div style='text-align:center; padding:18px 0 8px;'>
-        <div style='font-size:30px; font-weight:800; color:#1B4F8A; letter-spacing:-0.5px;'>LifeLong WM</div>
-        <div style='font-size:14px; color:#7A8FA6; margin-top:5px; font-weight:400;'>통계가 계산하고, AI가 쉽게 전달합니다</div>
+    <div class="app-header">
+        <div class="app-header-title">LifeLong WM</div>
+        <div class="app-header-sub">통계가 계산하고, AI가 쉽게 전달합니다</div>
     </div>
-    <hr style='border-color:#E8EEF8; margin:0 0 18px;'>
+    <hr style='border-color:#E8EEF8; margin:0 0 20px;'>
     """, unsafe_allow_html=True)
 
     if st.session_state.ui_mode is None:
