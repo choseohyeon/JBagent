@@ -288,13 +288,13 @@ def _apply_css(age: int = 65):
 
         /* ── 입력창 ── */
         .stTextInput {{
-            max-width: 320px !important;
+            max-width: 420px !important;
             margin: 0 auto !important;
         }}
         .stTextInput input {{
             font-size: {size} !important;
-            padding: 12px 14px;
-            border-radius: 10px;
+            padding: 16px 18px;
+            border-radius: 12px;
             border: 1.5px solid #D5E0EF !important;
             background: #FFFFFF !important;
             color: #1A2744 !important;
