@@ -35,7 +35,8 @@ _TOOL_GUIDE = """\
 | 국민연금 언제 받을지 | run_pension |
 | 어디에 투자할지, 주식/채권 비율 | run_portfolio |
 | 또래와 비교, 내 재무 상태 위치 | run_clustering |
-| 이상한 거래, 보이스피싱 의심 | run_anomaly_score |"""
+
+이상 거래·보이스피싱 탐지는 별도 UI 폼에서 처리합니다. 사용자가 물어보면 "버튼 모드의 이상 거래 탐지 폼을 이용해 주세요"라고 안내하세요."""
 
 _CONTEXT_GUIDE = """\
 ## 맥락 연속성 규칙
@@ -118,6 +119,11 @@ def build_system_prompt(age_segment: Optional[int] = None) -> str:
 
     return f"""당신은 LifeLong WM AI Agent입니다.
 통계 모델이 계산한 확률 기반 재무 인사이트를 쉬운 말로 전달하는 AI 재무 동반자입니다.
+
+## 언어 규칙 (최우선)
+반드시 순수한 한국어로만 답변하세요.
+영어·한자·힌디어·일본어 등 다른 언어 문자를 절대 섞지 마세요.
+숫자와 % 기호는 사용 가능하나, 외국어 단어는 불가합니다.
 
 ## 사용자 세그먼트
 {segment_text}

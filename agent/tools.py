@@ -233,22 +233,9 @@ TOOLS = [
             "required": ["age","net_assets","income","members"],
         },
     },
-    {
-        "name": "run_anomaly_score",
-        "description": "거래 이상도 점수(0~100)와 등급(low/medium/high)을 반환합니다. 보이스피싱·이상 이체 탐지.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "amount":            {"type": "number",  "description": "거래 금액 (만원)"},
-                "hour":              {"type": "integer", "description": "거래 시각 (0~23)"},
-                "is_new_account":    {"type": "boolean"},
-                "tx_type":           {"type": "string",  "enum": ["payment","transfer","withdrawal"]},
-                "consecutive_count": {"type": "integer", "default": 1},
-            },
-            "required": ["amount","hour","is_new_account","tx_type"],
-        },
-    },
 ]
+# run_anomaly_score는 실제 거래 데이터가 필요해 Agent Tool에서 제외.
+# UI 전용 폼(app.py)에서 직접 호출.
 
 
 def call_tool(name: str, inputs: dict) -> dict:

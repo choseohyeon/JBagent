@@ -12,5 +12,6 @@ plotly
 openpyxl
 xlrd
 python-dotenv
+openai
 requests
 matplotlib

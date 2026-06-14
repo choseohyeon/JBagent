@@ -98,6 +98,7 @@ def _init():
         "ui_mode": None,              # None | "버튼 모드" | "채팅 모드"
         "selected_feature": None,     # 선택한 기능 인덱스 (0~3)
         "chat_messages": [],          # 채팅 모드용 표시 메시지
+        "chat_init_attempted": False, # 채팅 첫 자동 실행 여부 (무한루프 방지)
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -109,45 +110,94 @@ def _apply_css(age: int = 65):
     size = "20px" if age >= 75 else "18px" if age >= 65 else "16px"
     st.markdown(f"""
     <style>
-        .main .block-container {{ max-width: 720px; padding-top: 1.5rem; }}
-        p, li, .stMarkdown {{ font-size: {size} !important; line-height: 1.75; color: #111; }}
+        .main .block-container {{ max-width: 740px; padding-top: 1rem; }}
+        p, li, .stMarkdown {{ font-size: {size} !important; line-height: 1.8; color: #1A2744; }}
         div[data-testid="stChatMessage"] {{ font-size: {size} !important; }}
 
-        /* 모든 버튼 기본: 아웃라인 스타일 */
+        /* 기본 버튼 */
         .stButton > button {{
             font-size: {size} !important;
-            border-radius: 6px !important;
-            border: 1.5px solid #D0D5DD !important;
-            background: #fff !important;
-            color: #111 !important;
-            font-weight: 400 !important;
-            transition: border-color 0.15s !important;
+            border-radius: 10px !important;
+            border: 1.5px solid #D5E0EF !important;
+            background: #FFFFFF !important;
+            color: #1A2744 !important;
+            font-weight: 500 !important;
+            transition: all 0.18s ease !important;
+            box-shadow: 0 1px 4px rgba(27,79,138,0.07) !important;
         }}
         .stButton > button:hover {{
             border-color: #1B4F8A !important;
             color: #1B4F8A !important;
+            background: #F0F6FF !important;
+            box-shadow: 0 3px 12px rgba(27,79,138,0.13) !important;
         }}
 
-        /* 메인 메뉴 버튼: 더 크게 */
+        /* 메인 메뉴 버튼 */
         .menu-btn button {{
-            height: 80px !important;
+            height: 90px !important;
             white-space: pre-wrap !important;
-            line-height: 1.5 !important;
+            line-height: 1.6 !important;
             font-size: {size} !important;
-            font-weight: 500 !important;
+            font-weight: 600 !important;
+            background: #FFFFFF !important;
+            border: 1.5px solid #C8D8F0 !important;
+            color: #1A2744 !important;
+        }}
+        .menu-btn button:hover {{
+            background: #EBF2FF !important;
+            border-color: #1B4F8A !important;
+            color: #1B4F8A !important;
         }}
 
-        /* 프라이머리 액션 (다음, 선택 등) */
+        /* 프라이머리 버튼 */
         .btn-primary button {{
             background: #1B4F8A !important;
-            color: #fff !important;
+            color: #FFFFFF !important;
             border-color: #1B4F8A !important;
-            font-weight: 500 !important;
+            font-weight: 600 !important;
+            box-shadow: 0 2px 8px rgba(27,79,138,0.25) !important;
+        }}
+        .btn-primary button:hover {{
+            background: #163F70 !important;
+            box-shadow: 0 4px 14px rgba(27,79,138,0.35) !important;
         }}
 
-        .stTextInput input {{ font-size: {size} !important; padding: 10px 12px; border-radius: 6px; }}
-        .stProgress > div > div {{ background-color: #1B4F8A; }}
-        hr {{ border-color: #F0F0F0; }}
+        /* 모드 선택 카드 */
+        .mode-card {{
+            border: 1.5px solid #D5E3F5;
+            border-radius: 14px;
+            padding: 24px 20px;
+            background: #FFFFFF;
+            box-shadow: 0 2px 10px rgba(27,79,138,0.06);
+            margin-bottom: 12px;
+        }}
+
+        /* 기능 선택 카드 */
+        .feature-card {{
+            border: 1.5px solid #E2EAF6;
+            border-radius: 12px;
+            padding: 16px 18px;
+            background: #FFFFFF;
+            box-shadow: 0 1px 5px rgba(27,79,138,0.05);
+            margin-bottom: 8px;
+        }}
+
+        .stTextInput input {{
+            font-size: {size} !important;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1.5px solid #D5E0EF !important;
+            background: #FFFFFF !important;
+            color: #1A2744 !important;
+        }}
+        .stProgress > div > div {{ background: #1B4F8A; border-radius: 4px; }}
+        hr {{ border-color: #E8EFF8; margin: 1.2rem 0; }}
+
+        /* 사이드바 — 밝은 스타일 */
+        section[data-testid="stSidebar"] {{
+            background: #FFFFFF;
+            border-right: 1px solid #E2EAF6;
+        }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -283,23 +333,32 @@ def _pension_chart(pension_data: dict, base_monthly: float) -> go.Figure:
 # ── 모드 선택 ────────────────────────────────────────────────────────────────
 
 def _show_mode_select():
-    st.markdown("### 이용 방식을 선택해주세요")
-    st.markdown("")
+    st.markdown("<div style='text-align:center; margin-bottom:24px;'><span style='font-size:22px; font-weight:700; color:#1B4F8A;'>어떻게 이용하실래요?</span></div>", unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("**버튼 모드**")
-        st.caption("준비된 항목 중에서 골라 확인하는 방식")
+        st.markdown("""
+        <div class="mode-card">
+            <div style='font-size:32px; margin-bottom:10px;'>🖱️</div>
+            <div style='font-size:17px; font-weight:700; color:#1B4F8A; margin-bottom:6px;'>버튼 모드</div>
+            <div style='font-size:14px; color:#555; line-height:1.6;'>준비된 항목 중에서<br>골라 확인하는 방식</div>
+        </div>
+        """, unsafe_allow_html=True)
         st.markdown('<div class="btn-primary">', unsafe_allow_html=True)
-        if st.button("버튼 모드로 시작", key="select_btn", use_container_width=True):
+        if st.button("버튼 모드로 시작 →", key="select_btn", use_container_width=True):
             st.session_state.ui_mode = "버튼 모드"
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
-        st.markdown("**채팅 모드**")
-        st.caption("궁금한 것을 자유롭게 대화하는 방식")
-        if st.button("채팅 모드로 시작", key="select_chat", use_container_width=True):
+        st.markdown("""
+        <div class="mode-card">
+            <div style='font-size:32px; margin-bottom:10px;'>💬</div>
+            <div style='font-size:17px; font-weight:700; color:#1B4F8A; margin-bottom:6px;'>채팅 모드</div>
+            <div style='font-size:14px; color:#555; line-height:1.6;'>궁금한 것을<br>자유롭게 대화하는 방식</div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("채팅 모드로 시작 →", key="select_chat", use_container_width=True):
             st.session_state.ui_mode = "채팅 모드"
             st.rerun()
 
@@ -307,28 +366,35 @@ def _show_mode_select():
 # ── 기능 선택 ────────────────────────────────────────────────────────────────
 
 def _show_feature_select():
-    st.markdown("### 무엇이 궁금하세요?")
-    st.markdown("")
+    st.markdown("<div style='text-align:center; margin-bottom:20px;'><span style='font-size:22px; font-weight:700; color:#1B4F8A;'>무엇이 궁금하세요?</span></div>", unsafe_allow_html=True)
 
     features = [
-        ("내 자산 얼마나 버티나요?",     "Monte Carlo 시뮬레이션으로 자산 수명과 고갈 확률 계산"),
-        ("연금 언제 받는 게 좋을까요?",   "수령 시기별 총 수령액·손익분기 연령 비교"),
-        ("또래랑 비교해주세요",            "비슷한 처지 가구 대비 내 자산 순위"),
-        ("지출 줄이면 어떻게 되나요?",     "지출 20% 절감 시 자산 수명 재시뮬레이션"),
+        ("📊", "내 자산 얼마나 버티나요?",     "Monte Carlo 10,000회 시뮬레이션으로 자산 수명과 고갈 확률 계산"),
+        ("🏦", "연금 언제 받는 게 좋을까요?",   "수령 시기별 총 수령액·손익분기 연령 비교"),
+        ("👥", "또래랑 비교해주세요",            "비슷한 처지 가구 대비 내 자산 순위"),
+        ("✂️", "지출 줄이면 어떻게 되나요?",    "지출 20% 절감 시 자산 수명 재시뮬레이션"),
     ]
 
-    for i, (title, desc) in enumerate(features):
+    for i, (icon, title, desc) in enumerate(features):
         col_txt, col_btn = st.columns([5, 1])
         with col_txt:
-            st.markdown(f"**{title}**")
-            st.caption(desc)
+            st.markdown(f"""
+            <div class="feature-card">
+                <div style='display:flex; align-items:center; gap:12px;'>
+                    <span style='font-size:26px;'>{icon}</span>
+                    <div>
+                        <div style='font-size:16px; font-weight:700; color:#1a1a1a;'>{title}</div>
+                        <div style='font-size:13px; color:#666; margin-top:3px;'>{desc}</div>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
         with col_btn:
-            st.markdown('<div class="btn-primary">', unsafe_allow_html=True)
+            st.markdown('<div class="btn-primary" style="margin-top:8px;">', unsafe_allow_html=True)
             if st.button("선택", key=f"feat_{i}", use_container_width=True):
                 st.session_state.selected_feature = i
                 st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
-        st.divider()
 
 
 # ── 온보딩 ────────────────────────────────────────────────────────────────────
@@ -418,6 +484,8 @@ def _show_main():
         prompt = MENU[i][1]
         st.session_state.pending_question = _inject_profile(prompt)
         st.session_state.active_button = i
+        st.session_state.conv_history = []
+        st.rerun()
 
     # 프로필 요약
     income_line = f"월 소득 {income_disp}　" if income > 0 or "monthly_income" in lbl else ""
@@ -444,6 +512,7 @@ def _show_main():
                     st.session_state.sim_result = None
                     st.session_state.pension_result = None
                     st.session_state.active_button = i
+                    st.session_state.conv_history = []
                     st.rerun()
                 st.markdown('</div>', unsafe_allow_html=True)
 
@@ -533,6 +602,49 @@ def _show_main():
                     st.session_state.pension_result = None
                     st.rerun()
 
+    # ── 이상 거래 탐지 폼 ─────────────────────────────────────────────────────
+    st.markdown("---")
+    with st.expander("🔍 이상 거래 탐지 — 거래 정보 직접 입력"):
+        st.caption("보이스피싱·이상 이체 여부를 분석합니다. 의심스러운 거래 정보를 입력해주세요.")
+        col_a, col_b = st.columns(2)
+        with col_a:
+            tx_amount = st.number_input("거래 금액 (만원)", min_value=0.0, value=100.0, step=10.0, key="tx_amount")
+            tx_new = st.radio("상대 계좌", ["처음 거래하는 계좌", "기존 거래 계좌"], key="tx_new") == "처음 거래하는 계좌"
+        with col_b:
+            tx_hour = st.slider("거래 시각", 0, 23, 14, key="tx_hour", format="%d시")
+            tx_type_label = st.selectbox("거래 유형", ["이체", "결제", "출금"], key="tx_type")
+        tx_count = st.number_input("연속 거래 횟수", min_value=1, max_value=20, value=1, key="tx_count")
+
+        st.markdown('<div class="btn-primary">', unsafe_allow_html=True)
+        if st.button("이상 거래 분석하기", key="anomaly_btn", use_container_width=True):
+            type_map = {"이체": "transfer", "결제": "payment", "출금": "withdrawal"}
+            from agent.tools import run_anomaly_score
+            try:
+                res = run_anomaly_score(tx_amount, tx_hour, tx_new, type_map[tx_type_label], tx_count)
+                score = res['score']
+                level = res['level']
+                color = "#C0392B" if level == "high" else "#E67E22" if level == "medium" else "#27AE60"
+                badge = "⚠️ 위험" if level == "high" else "🔶 주의" if level == "medium" else "✅ 정상"
+                st.markdown(f"""
+                <div style='border:2px solid {color}; border-radius:12px; padding:20px 24px; margin:12px 0; background:#FAFBFF;'>
+                    <div style='display:flex; align-items:center; gap:16px;'>
+                        <div style='font-size:42px; font-weight:800; color:{color};'>{score}</div>
+                        <div>
+                            <div style='font-size:18px; font-weight:700; color:{color};'>{badge}</div>
+                            <div style='font-size:13px; color:#666; margin-top:2px;'>이상도 점수 (0=정상 / 100=매우 위험)</div>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                if res.get('triggers'):
+                    st.markdown("**감지된 위험 신호**")
+                    for t in res['triggers']:
+                        st.markdown(f"- {t}")
+                st.info(res.get('recommendation', ''))
+            except Exception as e:
+                st.error(f"분석 중 오류가 발생했습니다: {e}")
+        st.markdown('</div>', unsafe_allow_html=True)
+
     # 더 물어보기 (접힌 상태)
     with st.expander("더 물어보기"):
         user_q = st.text_input("질문을 입력하세요", key="extra_input",
@@ -542,6 +654,7 @@ def _show_main():
             if user_q.strip():
                 st.session_state.pending_question = _inject_profile(user_q)
                 st.session_state.result_text = None
+                st.session_state.conv_history = []
                 st.rerun()
 
 
@@ -549,6 +662,21 @@ def _show_chat():
     """채팅 모드 화면"""
     p   = st.session_state.profile
     age = p.get("age", 65)
+
+    # 첫 진입 시 자산 시뮬레이션 자동 실행 (플래그를 API 호출 전에 세팅해 무한 루프 방지)
+    if not st.session_state.chat_messages and not st.session_state.chat_init_attempted:
+        st.session_state.chat_init_attempted = True
+        with st.spinner("기본 자산 분석 중..."):
+            init_q = _inject_profile("내 자산이 얼마나 버티는지 Monte Carlo 시뮬레이션으로 계산해주세요.")
+            reply, updated = run_agent(init_q, [], age=age)
+        st.session_state.conv_history = updated
+        sim = _extract_sim(updated)
+        ai_msg: dict = {"role": "assistant", "content": reply}
+        if sim:
+            ai_msg["chart"] = "fan"
+            ai_msg["sim"]   = sim
+        st.session_state.chat_messages.append(ai_msg)
+        st.rerun()
 
     # 대화 기록 표시
     for idx, msg in enumerate(st.session_state.chat_messages):
@@ -681,6 +809,7 @@ def main():
                 "result_text": None, "sim_result": None,
                 "pension_result": None, "active_button": None,
                 "pending_question": None, "chat_messages": [],
+                "chat_init_attempted": False,
                 "ui_mode": None, "selected_feature": None,
             })
             st.rerun()
@@ -689,7 +818,13 @@ def main():
         segment = "후기 고령층" if age >= 75 else "초기 고령층" if age >= 65 else "은퇴 준비층"
         st.caption(segment)
 
-    st.markdown("## LifeLong WM")
+    st.markdown("""
+    <div style='text-align:center; padding:18px 0 8px;'>
+        <div style='font-size:30px; font-weight:800; color:#1B4F8A; letter-spacing:-0.5px;'>LifeLong WM</div>
+        <div style='font-size:14px; color:#7A8FA6; margin-top:5px; font-weight:400;'>통계가 계산하고, AI가 쉽게 전달합니다</div>
+    </div>
+    <hr style='border-color:#E8EEF8; margin:0 0 18px;'>
+    """, unsafe_allow_html=True)
 
     if st.session_state.ui_mode is None:
         _show_mode_select()
