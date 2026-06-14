@@ -164,6 +164,10 @@ def _apply_css(age: int = 65):
             background: #163F70 !important;
             box-shadow: 0 4px 14px rgba(27,79,138,0.35) !important;
         }}
+        .btn-secondary button {{
+            border-radius: 10px !important;
+            font-weight: 500 !important;
+        }}
 
         /* 모드 선택 카드 */
         .mode-card {{
@@ -498,6 +502,7 @@ def _show_onboarding():
     st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
     col_back, col_next = st.columns([1, 3], gap="small")
     with col_back:
+        st.markdown('<div class="btn-secondary">', unsafe_allow_html=True)
         if st.button("← 이전", key=f"back_{step}", use_container_width=True):
             if step == 0:
                 if st.session_state.ui_mode == "채팅 모드":
@@ -507,6 +512,7 @@ def _show_onboarding():
             else:
                 st.session_state.step -= 1
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
     with col_next:
         st.markdown('<div class="btn-primary">', unsafe_allow_html=True)
         if st.button("다음 →", key=f"btn_{step}", use_container_width=True):
